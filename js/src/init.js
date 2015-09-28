@@ -2,7 +2,10 @@ var THREE = require('three.js');
 THREE.OrbitControls = require('three-orbit-controls')(THREE);
 var T = require('./T.js');
 var Firebase = require('firebase');
-var data = new Firebase('https://3-d.firebaseio.com/cubes');
+
+var universe = window.location.hash ? window.location.hash.slice(1) : prompt('Universe name?');
+
+var data = new Firebase('https://3-d.firebaseio.com/' + universe);
 
 var world, camera, controls, scene, renderer;
 
