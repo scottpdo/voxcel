@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3d</title>
+
+    <style>
+        html, body { margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            position: relative;
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: 0.2s opacity;
+        }
+
+        .faded {
+            opacity: 0;
+        }
+
+        #controls {
+            background: #fff;
+            border-top: 1px solid #999;
+            bottom: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            width: 100%;
+            padding: 1em;
+            position: fixed;
+            text-align: center;
+        }
+
+        .monospace {
+            font-family: Monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            padding-left: 2em;
+        }
+
+        .monospace:first-child {
+            padding-left: 0;
+        }
+
+        a, a:visited {
+            color: #77c;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        a:active, a:focus, a:hover {
+            color: #99d;
+        }
+    </style>
+
+</head>
+<body>
+    <div id="container"></div>
+
+    <script src="js/dist/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "3d",
+  "version": "0.0.1",
+  "description": "3d modeling in browser",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scottdonaldson/3d.git"
+  },
+  "author": "Scott Donaldson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/scottdonaldson/3d/issues"
+  },
+  "homepage": "https://github.com/scottdonaldson/3d#readme",
+  "dependencies": {
+    "firebase": "^2.3.0",
+    "three-orbit-controls": "^71.0.0",
+    "three.js": "^0.72.0"
+  },
+  "devDependencies": {
+    "autoprefixer-core": "^6.0.1",
+    "browser-sync": "^2.9.6",
+    "browserify": "^11.2.0",
+    "gulp": "^3.9.0",
+    "gulp-awspublish": "^3.0.1",
+    "gulp-postcss": "^6.0.0",
+    "gulp-sass": "^2.0.4",
+    "gulp-uglify": "^1.4.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}
