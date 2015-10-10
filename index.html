@@ -10,10 +10,16 @@
             box-sizing: border-box;
             position: relative;
         }
-        canvas {
-            position: fixed;
+
+        #container {
+            position: absolute;
+            left: 100px;
             top: 0;
-            left: 0;
+            height: 100vh;
+            width: calc(100% - 100px);
+        }
+
+        canvas {
             transition: 0.2s opacity;
         }
 
@@ -52,44 +58,30 @@
         a:active, a:focus, a:hover {
             color: #99d;
         }
+
+        #admin {
+            background: #fff;
+            height: 100vh;
+            padding: 10px;
+            position: absolute;
+            width: 100px;
+        }
+
+        img {
+            height: auto;
+            max-width: 100%;
+        }
+
+        .login {
+        }
     </style>
-
-    <script type="x-shader/x-vertex" id="vertexShader">
-
-        varying vec3 vWorldPosition;
-
-        void main() {
-
-            vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-            vWorldPosition = worldPosition.xyz;
-
-            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
-        }
-
-    </script>
-
-    <script type="x-shader/x-fragment" id="fragmentShader">
-
-        uniform vec3 topColor;
-        uniform vec3 bottomColor;
-        uniform float offset;
-        uniform float exponent;
-
-        varying vec3 vWorldPosition;
-
-        void main() {
-
-            float h = normalize( vWorldPosition + offset ).y;
-            gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h, 0.0 ), exponent ), 0.0 ) ), 1.0 );
-
-        }
-
-    </script>
 
 </head>
 <body>
     <div id="container"></div>
+    <div id="admin">
+        <button class="login" id="login">Log In</button>
+    </div>
 
     <script src="js/dist/script.js"></script>
 </body>

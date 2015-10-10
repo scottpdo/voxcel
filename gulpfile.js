@@ -1,7 +1,7 @@
 var gulp = require('gulp'),
     sass = require('gulp-sass'),
     postcss = require('gulp-postcss'),
-    autoprefixer = require('autoprefixer-core'),
+    autoprefixer = require('autoprefixer'),
     browserify = require('browserify'),
     uglify = require('gulp-uglify'),
     source = require('vinyl-source-stream'),
@@ -12,7 +12,7 @@ var reload = browserSync.reload;
 
 // ----- Config
 
-// var aws = require('./aws.json');
+var aws = require('./aws.json');
 
 var paths = {
     jsIn: 'js/src',

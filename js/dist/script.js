@@ -3,10 +3,11 @@ var THREE = require('three.js');
 
 var T = function(id) {
 
-    var scene, camera, renderer;
+    var container = document.getElementById(id),
+        scene, camera, renderer;
 
-    var WIDTH = window.innerWidth,
-        HEIGHT = window.innerHeight,
+    var WIDTH = container.clientWidth,
+        HEIGHT = container.clientHeight,
         VIEW_ANGLE = 45,
         ASPECT = WIDTH / HEIGHT,
         NEAR = 0.1,
@@ -16,7 +17,7 @@ var T = function(id) {
         antialias: true,
         preserveDrawingBuffer: true
     });
-    renderer.shadowMapEnabled = true;
+    renderer.shadowMap.enabled = true;
 
     camera = new THREE.PerspectiveCamera(
         VIEW_ANGLE,
@@ -35,6 +36,11 @@ var T = function(id) {
         document.body.appendChild(renderer.domElement);
     }
 
+    this.container = {
+        el: container,
+        width: WIDTH,
+        height: HEIGHT
+    };
     this.scene = scene;
     this.camera = T.normalize(camera);
     this.renderer = renderer;
@@ -110,7 +116,7 @@ T.Material = function(type, attrs) {
 };
 
 T.prototype.mesh = function(geo, material) {
-    if (!material) material = Material();
+    if (!material) material = T.Material();
     var mesh = new T.Mesh(geo, material, this),
         height,
         yVertices,
@@ -166,20 +172,97 @@ T.prototype.render = function(cb) {
 
 module.exports = T;
 
-},{"three.js":5}],2:[function(require,module,exports){
+},{"three.js":11}],2:[function(require,module,exports){
+module.exports = function(ref) {
+
+    var user = false;
+
+    function login(obj) {
+        var success = obj.success,
+            error = obj.error;
+        ref.authWithOAuthPopup('google', function(err, authData) {
+            if (err) {
+                return error(err);
+            } else {
+                user = {
+                    id: authData.auth.uid,
+                    name: authData.google.displayName,
+                    photo: authData.google.profileImageURL
+                };
+                return success(authData);
+            }
+        });
+    }
+
+    function getUser(key) {
+        if ( key && user[key] ) {
+            return user[key];
+        } else if ( key && !user[key] ) {
+            console.warn('Could not find ' + key + ' on the user. Returning the entire user object instead.');
+        }
+        return user;
+    }
+
+    return {
+        login: login,
+        getUser: getUser
+    };
+}
+
+},{}],3:[function(require,module,exports){
 var THREE = require('three.js');
 THREE.OrbitControls = require('three-orbit-controls')(THREE);
-var T = require('./T.js');
-var Firebase = require('firebase');
 
-var universe = window.location.hash ? window.location.hash.slice(1) : prompt('Universe name?');
+module.exports = function(world) {
 
-var data = new Firebase('https://3-d.firebaseio.com/' + universe);
+    var camera = world.camera;
+    camera.position.x = -1200;
+    camera.position.y = 350;
+    camera.position.z = 500;
 
-var world, camera, controls, scene, renderer;
+    return camera;
+};
 
-// going to increment this
-var light, lightTarget = new THREE.Vector3(0, 0, 0);
+},{"three-orbit-controls":10,"three.js":11}],4:[function(require,module,exports){
+var config = {
+    dataRef: 'https://3-d.firebaseio.com/'
+};
+
+module.exports = config;
+
+},{}],5:[function(require,module,exports){
+var CONFIG = require('./config.js'),
+    THREE = require('three.js'),
+    T = require('./T.js'),
+    Firebase = require('firebase');
+
+var dataRef = new Firebase(CONFIG.dataRef);
+
+var auth = require('./auth.js')(dataRef),
+    loginButton = document.getElementById('login');
+
+loginButton.addEventListener('click', function() {
+
+    function success(data) {
+        var photo = document.createElement('img');
+        photo.src = auth.getUser('photo');
+        loginButton.parentNode.appendChild(photo);
+        loginButton.parentNode.removeChild(loginButton);
+    }
+
+    function error() {
+
+    }
+
+    auth.login({
+        success: success,
+        error: error
+    });
+});
+
+var data = new Firebase(CONFIG.dataRef + 'scottland');
+
+var world, camera, lighting, controls, scene, renderer;
 
 var rollOverMesh, isShiftDown = false, objects = [], gridPlane;
 
@@ -202,10 +285,7 @@ function init() {
 
     world = new T('container');
 
-    camera = world.camera;
-    camera.position.x = -1200;
-    camera.position.y = 350;
-    camera.position.z = 500;
+    camera = require('./camera.js')(world);
 
     scene = world.scene;
 
@@ -213,90 +293,29 @@ function init() {
     renderer.setClearColor('#f2e8e8');
 
     controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.mouseButtons = {
+        ORBIT: THREE.MOUSE.RIGHT,
+        PAN: THREE.MOUSE.LEFT
+    };
+    controls.maxPolarAngle = Math.PI / 2;
     controls.damping = 0.5;
     controls.addEventListener( 'change', render );
 
     var rollOverGeo = new THREE.BoxGeometry( 50, 50, 50 );
     rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x5555ff, opacity: 0.5, transparent: true } );
     rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-    rollOverMesh.position.x = 25;
-    rollOverMesh.position.y = 28;
-    rollOverMesh.position.z = 25;
+    rollOverMesh.visible = false;
+    rollOverMesh.position.set(25, 25, 25);
     scene.add( rollOverMesh );
-
-    var size = 500, step = 50;
-
-    /* var geometry = new THREE.Geometry();
-
-    for ( var i = - size; i <= size; i += step ) {
-
-        geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
-        geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
-
-        geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
-        geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
-
-    }
-
-    var lineMaterial = new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, fog: true, opacity: 0.5 } );
-
-    var grid = new THREE.Line( geometry, lineMaterial, THREE.LinePieces );
-    //grid.visible = false;
-    scene.add( grid );
-    grid.position.y = 3; */
-
-    gridPlane = world.mesh(T.Box(1000, 1, 1000), T.Material('#999'));
-    //gridPlane.visible = false;
-    gridPlane.y(0);
-    objects.push(gridPlane);
 
     // GROUND PLANE
     var plane = world.mesh(T.Box(100000, 1, 100000), T.Material('lambert', '#888')).y(-2);
-    lightTarget = plane;
 
-    light = world.light();
-    light.target = lightTarget;
-    var lightX = -500,
-        lightY = 2500,
-        lightZ = 2000;
-    light.position.set(lightX, lightY, lightZ);
+    gridPlane = world.mesh(T.Box(100, 1, 100));
+    objects.push(gridPlane);
 
-    var light2 = world.light('#fff', 1, false);
-    light2.target = lightTarget;
-    light2.position.set(2000, 2500, -500);
-
-    var hemiLight = new THREE.HemisphereLight( '#57f', '#000', 0.15 );
-
-    hemiLight.position.x = 400;
-    hemiLight.position.y = 500;
-    hemiLight.position.z = -200;
-    scene.add( hemiLight );
-
-    // SKYDOME
-    var vertexShader = document.getElementById( 'vertexShader' ).textContent,
-        fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
-
-    uniforms = {
-        topColor: 	 { type: "c", value: new THREE.Color( 0x0077ff ) },
-        bottomColor: { type: "c", value: new THREE.Color( '#ccc' ) },
-        offset:		 { type: "f", value: 400 },
-        exponent:	 { type: "f", value: 0.6 }
-    }
-    uniforms.topColor.value.copy( hemiLight.color );
-
-    scene.fog = new THREE.Fog( '#000', 1000, 20000 );
-    scene.fog.color.copy( uniforms.bottomColor.value );
-
-    skyGeo = new THREE.SphereGeometry( 20000, 32, 15 );
-    skyMat = new THREE.ShaderMaterial( {
-        uniforms: uniforms,
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        side: THREE.BackSide
-    } );
-
-    sky = new THREE.Mesh( skyGeo, skyMat );
-    scene.add( sky );
+    // LIGHTING
+    lighting = require('./lighting.js')(world, plane);
 
     // ----- resize
     window.addEventListener( 'resize', onWindowResize, false );
@@ -340,6 +359,8 @@ function render() {
     renderer.render(scene, camera);
 }
 
+world.render = render;
+
 function onWindowResize() {
 
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -372,24 +393,6 @@ function uploadSnapshot() {
     }, 350);
 };
 
-function timeGoesBy() {
-    if ( light.position.z >= -3400 ) {
-
-        light.position.z -= 25;
-        light.position.set(light.position.x, light.position.y, light.position.z);
-        if ( light.position.z <= 0 ) {
-            light.color = new THREE.Color( 1, light.color.g - 0.004, light.color.b - 0.01 );
-        }
-        light.target = lightTarget;
-
-        uniforms.topColor.value = new THREE.Color( uniforms.topColor.value.r - 0.01, uniforms.topColor.value.g - 0.01, uniforms.topColor.value.b - 0.01 );
-
-        sky.material.uniforms = uniforms;
-
-        render();
-    }
-}
-
 function clearAll() {
     // don't remove the ground plane
     for ( var i = 1; i < objects.length; i++ ) {
@@ -404,7 +407,7 @@ window.addEventListener('keydown', function(e) {
     // shift
     if ( e.keyCode === 16 ) isShiftDown = true;
     // space bar
-    if ( e.keyCode === 32 ) timeGoesBy();
+    if ( e.keyCode === 32 ) lighting.timeGoesBy();
     // x
     if ( e.keyCode === 88 ) clearAll();
 });
@@ -416,15 +419,16 @@ window.addEventListener('keyup', function(e) {
 
 // ----- RAYCASTER
 
-function onMouseMove( event ) {
+function onMouseMove( e ) {
 
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components
 
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1
-    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1
+    mouse.x = ( e.offsetX / world.container.width ) * 2 - 1
+    mouse.y = - ( e.offsetY / world.container.height ) * 2 + 1
 
-    if ( raycaster ) {
+    if ( auth.getUser() ) {
+
         raycaster.setFromCamera( mouse, camera );
 
         var intersects = raycaster.intersectObjects( objects );
@@ -435,7 +439,6 @@ function onMouseMove( event ) {
             rollOverMesh.visible = true;
             rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
             rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-            rollOverMesh.position.y += 3;
 
         } else {
             rollOverMesh.visible = false;
@@ -450,6 +453,10 @@ var mouseDownCoords;
 function onMouseDown( event ) {
 
     event.preventDefault();
+
+    if ( isShiftDown ) {
+        rollOverMesh.visible = false;
+    }
 
     mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
 
@@ -473,23 +480,33 @@ function makeVoxel(intersect) {
 
     voxel.position.copy( intersect.point ).add( intersect.face.normal );
     voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-    voxel.position.y += 3;
     scene.add( voxel );
     objects.push( voxel );
 
-    data.push({
-        color: '#' + hexVal + hexVal + hexVal,
-        x: voxel.position.x,
-        y: voxel.position.y,
-        z: voxel.position.z
-    });
+    var x = voxel.position.x,
+        y = voxel.position.y,
+        z = voxel.position.z,
+        id = [x, y, z].join(',');
+
+    data.child(id).set('#' + hexVal + hexVal + hexVal);
 }
 
-function renderVoxel(data) {
-    var voxel = cube(data.color);
-    voxel.position.x = data.x;
-    voxel.position.y = data.y;
-    voxel.position.z = data.z;
+function vectorFromId(id) {
+    var x = +id.split(',')[0],
+        y = +id.split(',')[1],
+        z = +id.split(',')[2];
+
+    var output = new THREE.Vector3(x, y, z);
+    return output;
+}
+
+function renderVoxel(id, color) {
+
+    var voxel = cube(color),
+        position = vectorFromId(id);
+
+    voxel._id = id;
+    voxel.position.set(position.x, position.y, position.z);
 
     scene.add( voxel );
     objects.push( voxel );
@@ -497,8 +514,22 @@ function renderVoxel(data) {
     render();
 }
 
+function removeVoxel(object) {
+
+    var id = object._id;
+
+    console.log('removing', id);
+
+    data.child(id).set(null);
+
+    scene.remove( object );
+
+    objects = objects.slice( objects.indexOf( object ), 1 );
+
+}
+
 data.on('child_added', function(snapshot) {
-    renderVoxel(snapshot.val());
+    renderVoxel(snapshot.key(), snapshot.val());
 });
 
 function onMouseUp( event ) {
@@ -514,19 +545,9 @@ function onMouseUp( event ) {
             var intersect = intersects[ 0 ];
 
             // delete cube
-
             if ( isShiftDown ) {
-
-                if ( intersect.object != gridPlane ) {
-
-                    scene.remove( intersect.object );
-
-                    objects.splice( objects.indexOf( intersect.object ), 1 );
-
-                }
-
+                removeVoxel( intersect.object );
             // create cube
-
             } else {
                 makeVoxel(intersect);
             }
@@ -543,7 +564,99 @@ window.addEventListener( 'mouseup', onMouseUp, false );
 
 window.requestAnimationFrame(render);
 
-},{"./T.js":1,"firebase":3,"three-orbit-controls":4,"three.js":5}],3:[function(require,module,exports){
+},{"./T.js":1,"./auth.js":2,"./camera.js":3,"./config.js":4,"./lighting.js":6,"firebase":9,"three.js":11}],6:[function(require,module,exports){
+var THREE = require('three.js');
+
+module.exports = function(world, target) {
+
+    var scene = world.scene;
+
+    var light = world.light(),
+        light2 = world.light('#fff', 1, false),
+        lightTarget = target;
+
+    light.position.set(-500, 2500, 2000);
+    light2.position.set(2000, 2500, -500);
+    light.target = light2.target = lightTarget;
+
+    var hemiLight = new THREE.HemisphereLight( '#57f', '#000', 0.15 );
+
+    hemiLight.position.set(400, 500, -200);
+    scene.add( hemiLight );
+
+    // SKYDOME
+    var vertexShader = require('./shaders/vertexShader.js'),
+        fragmentShader = require('./shaders/fragmentShader.js');
+
+    var uniforms = {
+        topColor: 	 { type: "c", value: new THREE.Color( 0x0077ff ) },
+        bottomColor: { type: "c", value: new THREE.Color( '#ccc' ) },
+        offset:		 { type: "f", value: 400 },
+        exponent:	 { type: "f", value: 0.6 }
+    }
+    uniforms.topColor.value.copy( hemiLight.color );
+
+    scene.fog = new THREE.Fog( '#000', 1000, 20000 );
+    scene.fog.color.copy( uniforms.bottomColor.value );
+
+    var skyGeo = new THREE.SphereGeometry( 20000, 32, 15 ),
+        skyMat = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            side: THREE.BackSide
+        });
+
+    var sky = new THREE.Mesh( skyGeo, skyMat );
+    scene.add( sky );
+
+    function timeGoesBy() {
+        if ( light.position.z >= -3400 ) {
+
+            light.position.z -= 25;
+            light.position.set(light.position.x, light.position.y, light.position.z);
+            if ( light.position.z <= 0 ) {
+                light.color = new THREE.Color( 1, light.color.g - 0.004, light.color.b - 0.01 );
+            }
+            light.target = lightTarget;
+
+            uniforms.topColor.value = new THREE.Color( uniforms.topColor.value.r - 0.01, uniforms.topColor.value.g - 0.01, uniforms.topColor.value.b - 0.01 );
+
+            sky.material.uniforms = uniforms;
+
+            world.render();
+        }
+    }
+
+    return {
+        timeGoesBy: timeGoesBy
+    };
+};
+
+},{"./shaders/fragmentShader.js":7,"./shaders/vertexShader.js":8,"three.js":11}],7:[function(require,module,exports){
+module.exports = [
+    'uniform vec3 topColor;',
+    'uniform vec3 bottomColor;',
+    'uniform float offset;',
+    'uniform float exponent;',
+    'varying vec3 vWorldPosition;',
+    'void main() {',
+        'float h = normalize( vWorldPosition + offset ).y;',
+        'gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h, 0.0 ), exponent ), 0.0 ) ), 1.0 );',
+    '}'
+].join('\n');
+
+},{}],8:[function(require,module,exports){
+module.exports = [
+    'varying vec3 vWorldPosition;',
+    'void main() {',
+        'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+        'vWorldPosition = worldPosition.xyz;',
+        'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+    '}'
+].join("\n");
+
+},{}],9:[function(require,module,exports){
 /*! @license Firebase v2.3.0
     License: https://www.firebase.com/terms/terms-of-service.html */
 (function() {var g,aa=this;function n(a){return void 0!==a}function ba(){}function ca(a){a.ub=function(){return a.uf?a.uf:a.uf=new a}}
@@ -814,7 +927,7 @@ U.prototype.Ve=function(a,b){x("Firebase.resetPassword",2,2,arguments.length);ng
 
 module.exports = Firebase;
 
-},{}],4:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = function(THREE) {
     var MOUSE = THREE.MOUSE
     if (!MOUSE)
@@ -1529,7 +1642,7 @@ module.exports = function(THREE) {
     return OrbitControls;
 }
 
-},{}],5:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // File:src/Three.js
 
 /**
@@ -37496,4 +37609,4 @@ THREE.MorphBlendMesh.prototype.update = function ( delta ) {
 };
 
 
-},{}]},{},[2]);
+},{}]},{},[5]);

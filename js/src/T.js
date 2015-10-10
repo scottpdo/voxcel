@@ -2,10 +2,11 @@ var THREE = require('three.js');
 
 var T = function(id) {
 
-    var scene, camera, renderer;
+    var container = document.getElementById(id),
+        scene, camera, renderer;
 
-    var WIDTH = window.innerWidth,
-        HEIGHT = window.innerHeight,
+    var WIDTH = container.clientWidth,
+        HEIGHT = container.clientHeight,
         VIEW_ANGLE = 45,
         ASPECT = WIDTH / HEIGHT,
         NEAR = 0.1,
@@ -15,7 +16,7 @@ var T = function(id) {
         antialias: true,
         preserveDrawingBuffer: true
     });
-    renderer.shadowMapEnabled = true;
+    renderer.shadowMap.enabled = true;
 
     camera = new THREE.PerspectiveCamera(
         VIEW_ANGLE,
@@ -34,6 +35,11 @@ var T = function(id) {
         document.body.appendChild(renderer.domElement);
     }
 
+    this.container = {
+        el: container,
+        width: WIDTH,
+        height: HEIGHT
+    };
     this.scene = scene;
     this.camera = T.normalize(camera);
     this.renderer = renderer;
@@ -109,7 +115,7 @@ T.Material = function(type, attrs) {
 };
 
 T.prototype.mesh = function(geo, material) {
-    if (!material) material = Material();
+    if (!material) material = T.Material();
     var mesh = new T.Mesh(geo, material, this),
         height,
         yVertices,
