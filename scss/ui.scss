@@ -1,0 +1,117 @@
+// ----- Buttons
+$primary: #f66;
+$primary_highlight: #f99;
+
+$secondary: #00f;
+
+@mixin button {
+	background-color: $primary;
+	border: 1px solid transparent;
+	border-radius: 2px;
+	color: #fff;
+		&:visited { color: #fff; }
+	display: block;
+	letter-spacing: 0.05em;
+	line-height: 1.4;
+	margin: 0 0.5em 0.5em 0;
+	padding: 0.5em 1.2em;
+	text-transform: uppercase;
+	transition: 0.15s;
+	vertical-align: middle;
+    width: 100%;
+
+	&:active, &:focus, &:hover,
+	&:visited:active, &:visited:focus, &:visited:hover {
+		background-color: $primary_highlight;
+		color: #fff;
+	}
+}
+
+button,
+.button,
+a.button,
+input[type="button"],
+input[type="submit"] {
+
+	@include button;
+
+	&[disabled],
+	&.button-disabled {
+		background: $secondary;
+		color: $primary;
+		cursor: not-allowed;
+	}
+
+	&.button-progress {
+		background: $secondary;
+		color: $primary;
+		padding-right: 3em;
+	}
+}
+
+.button-large,
+.input-small {
+	font-size: 1.25em;
+}
+
+.button-small,
+.input-small {
+	font-size: 0.85em;
+}
+
+// ----- Inputs, Selects, Textareas
+
+input,
+select,
+textarea {
+	border: 1px solid $primary;
+	border-radius: 2px;
+	display: block;
+	line-height: 1.4;
+	padding: 0.25em 0.5em;
+	transition: border-color 0.15s;
+	vertical-align: middle;
+    width: 100%;
+
+	&:active, &:focus {
+		border-color: $primary;
+		outline: 0;
+	}
+
+	&[disabled] {
+		background: #e8e8e8;
+		border-color: $primary;
+		cursor: not-allowed;
+		&[type="submit"], &[type="button"] { border-color: transparent; }
+	}
+}
+
+select {
+	appearance: none;
+		-moz-appearance: none;
+		-webkit-appearance: none;
+	// h/t Foundation (Zurb)
+	background-image: url('data:image/svg+xml;base64, PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgeD0iMHB4IiB5PSIwcHgiIHdpZHRoPSI2cHgiIGhlaWdodD0iM3B4IiB2aWV3Qm94PSIwIDAgNiAzIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA2IDMiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwb2x5Z29uIHBvaW50cz0iNS45OTIsMCAyLjk5MiwzIC0wLjAwOCwwICIvPjwvc3ZnPg==');
+	background-position: 95% 50%;
+	background-position: calc(100% - 0.5em) 50%;
+	background-repeat: no-repeat;
+	background-size: auto 6px;
+	cursor: pointer;
+    display: block;
+    width: 100%;
+}
+
+// ----- Labels
+
+label {
+	cursor: pointer;
+	display: block;
+	font-size: 0.9em;
+	margin: 0.25em 0;
+	text-transform: uppercase;
+}
+
+abbr[title="required"] {
+	border: 0;
+	color: $secondary;
+}

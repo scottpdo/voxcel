@@ -6,15 +6,15 @@ var CONFIG = require('./config.js'),
 var dataRef = new Firebase(CONFIG.dataRef);
 
 var auth = require('./auth.js')(dataRef),
+    adminContainer = document.getElementById('admin'),
     loginButton = document.getElementById('login');
 
 loginButton.addEventListener('click', function() {
 
     function success(data) {
-        var photo = document.createElement('img');
-        photo.src = auth.getUser('photo');
-        loginButton.parentNode.appendChild(photo);
         loginButton.parentNode.removeChild(loginButton);
+        // set up admin
+        require('./admin.js')(adminContainer, data);
     }
 
     function error() {
@@ -284,8 +284,6 @@ function renderVoxel(id, color) {
 function removeVoxel(object) {
 
     var id = object._id;
-
-    console.log('removing', id);
 
     data.child(id).set(null);
 
