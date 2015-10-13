@@ -37,12 +37,15 @@ var T = function(id) {
 
     this.container = {
         el: container,
-        width: WIDTH,
-        height: HEIGHT
+        width: function() { return container.clientWidth; },
+        height: function() { return container.clientHeight; }
     };
+
     this.scene = scene;
     this.camera = T.normalize(camera);
     this.renderer = renderer;
+
+    this.objects = [];
 
     return this;
 };

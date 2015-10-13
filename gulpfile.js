@@ -37,7 +37,7 @@ var site = {
 gulp.task('css', function() {
 
     var processors = [
-        require('autoprefixer-core')('last 2 versions')
+        autoprefixer('last 2 versions')
     ];
 
     gulp.src( paths.cssIn )

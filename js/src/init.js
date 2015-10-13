@@ -3,18 +3,18 @@ var CONFIG = require('./config.js'),
     T = require('./T.js'),
     Firebase = require('firebase');
 
-var dataRef = new Firebase(CONFIG.dataRef);
-
-var auth = require('./auth.js')(dataRef),
+var dataRef = new Firebase(CONFIG.dataRef),
+    auth = require('./auth.js')(dataRef), // needs base dataRef to init authentication
     adminContainer = document.getElementById('admin'),
     loginButton = document.getElementById('login');
 
 loginButton.addEventListener('click', function() {
 
+    // on successful login, initialize admin
     function success(data) {
         loginButton.parentNode.removeChild(loginButton);
         // set up admin
-        require('./admin.js')(adminContainer, data);
+        require('./admin.js')(adminContainer, data, scene);
     }
 
     function error() {
@@ -27,18 +27,11 @@ loginButton.addEventListener('click', function() {
     });
 });
 
-var data = new Firebase(CONFIG.dataRef + 'scottland');
-
 var world, camera, lighting, controls, scene, renderer;
 
-var rollOverMesh, isShiftDown = false, objects = [], gridPlane;
+var rollOverMesh, isShiftDown = false, gridPlane;
 
 var uniforms, skyGeo, skyMat, sky;
-
-function cube(color) {
-    var box = world.mesh(T.Box(50, 50, 50), T.Material(color || '#ccc'));
-    return box;
-}
 
 init();
 render();
@@ -54,7 +47,7 @@ function init() {
 
     camera = require('./camera.js')(world);
 
-    scene = world.scene;
+    scene = require('./scene.js')(world, 'google:104314934710208349695', 'test');
 
     renderer = world.renderer;
     renderer.setClearColor('#f2e8e8');
@@ -73,13 +66,13 @@ function init() {
     rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
     rollOverMesh.visible = false;
     rollOverMesh.position.set(25, 25, 25);
-    scene.add( rollOverMesh );
+    world.scene.add( rollOverMesh );
 
     // GROUND PLANE
     var plane = world.mesh(T.Box(100000, 1, 100000), T.Material('lambert', '#888')).y(-2);
 
     gridPlane = world.mesh(T.Box(100, 1, 100));
-    objects.push(gridPlane);
+    world.objects.push(gridPlane);
 
     // LIGHTING
     lighting = require('./lighting.js')(world, plane);
@@ -109,7 +102,7 @@ function render() {
         intersects = [];
 
         // calculate objects intersecting the picking ray
-        raycaster.intersectObjects( scene.children ).forEach(function(intersect) {
+        raycaster.intersectObjects( world.scene.children ).forEach(function(intersect) {
             intersects.push(intersect);
         });
 
@@ -123,17 +116,17 @@ function render() {
         });
     }
 
-    renderer.render(scene, camera);
+    renderer.render(world.scene, camera);
 }
 
 world.render = render;
 
 function onWindowResize() {
 
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = world.container.width() / world.container.height();
     camera.updateProjectionMatrix();
 
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( world.container.width(), world.container.height() );
 
     render();
 }
@@ -160,29 +153,28 @@ function uploadSnapshot() {
     }, 350);
 };
 
-function clearAll() {
-    // don't remove the ground plane
-    for ( var i = 1; i < objects.length; i++ ) {
-        scene.remove(objects[i]);
-    }
-    objects = objects.splice(1, Infinity)
-}
-
 window.addEventListener('keydown', function(e) {
-    // enter
-    // if ( e.keyCode === 13 ) uploadSnapshot();
-    // shift
-    if ( e.keyCode === 16 ) isShiftDown = true;
-    // space bar
-    if ( e.keyCode === 32 ) lighting.timeGoesBy();
-    // x
-    if ( e.keyCode === 88 ) clearAll();
+    var keys = {
+        // enter
+        // 13: uploadSnapshot,
+        // shift
+        16: onShiftDown,
+        // space bar
+        32: lighting.timeGoesBy
+    };
+    if ( e.keyCode in keys ) keys[e.keyCode](e);
 });
 
 window.addEventListener('keyup', function(e) {
     // shift up
     if ( e.keyCode === 16 ) isShiftDown = false;
 });
+
+function onShiftDown() {
+    isShiftDown = true;
+    rollOverMesh.visible = false;
+    world.render();
+}
 
 // ----- RAYCASTER
 
@@ -191,19 +183,20 @@ function onMouseMove( e ) {
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components
 
-    mouse.x = ( e.offsetX / world.container.width ) * 2 - 1
-    mouse.y = - ( e.offsetY / world.container.height ) * 2 + 1
+    mouse.x = ( e.offsetX / world.container.width() ) * 2 - 1
+    mouse.y = - ( e.offsetY / world.container.height() ) * 2 + 1
 
     if ( auth.getUser() ) {
 
         raycaster.setFromCamera( mouse, camera );
 
-        var intersects = raycaster.intersectObjects( objects );
+        var intersects = raycaster.intersectObjects( world.objects ),
+            intersect;
 
         if ( intersects.length > 0 ) {
 
-            var intersect = intersects[ 0 ];
-            rollOverMesh.visible = true;
+            intersect = intersects[ 0 ];
+            rollOverMesh.visible = !isShiftDown;
             rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
             rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
 
@@ -225,96 +218,33 @@ function onMouseDown( event ) {
         rollOverMesh.visible = false;
     }
 
-    mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+    mouse.set( ( event.offsetX / world.container.width() ) * 2 - 1, - ( event.offsetY / world.container.height() ) * 2 + 1 );
 
     // need to create a new object mapping to mousedown coordinates
     mouseDownCoords = {
         x: mouse.x,
         y: mouse.y
     };
-
 }
-
-function randCharFromString(str) {
-    return str[Math.floor(Math.random() * str.length)];
-}
-
-function makeVoxel(intersect) {
-    var hex = '56789abcdef',
-        hexVal = randCharFromString(hex);
-    // restrict to grayscale
-    var voxel = cube('#' + hexVal + hexVal + hexVal);
-
-    voxel.position.copy( intersect.point ).add( intersect.face.normal );
-    voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-    scene.add( voxel );
-    objects.push( voxel );
-
-    var x = voxel.position.x,
-        y = voxel.position.y,
-        z = voxel.position.z,
-        id = [x, y, z].join(',');
-
-    data.child(id).set('#' + hexVal + hexVal + hexVal);
-}
-
-function vectorFromId(id) {
-    var x = +id.split(',')[0],
-        y = +id.split(',')[1],
-        z = +id.split(',')[2];
-
-    var output = new THREE.Vector3(x, y, z);
-    return output;
-}
-
-function renderVoxel(id, color) {
-
-    var voxel = cube(color),
-        position = vectorFromId(id);
-
-    voxel._id = id;
-    voxel.position.set(position.x, position.y, position.z);
-
-    scene.add( voxel );
-    objects.push( voxel );
-
-    render();
-}
-
-function removeVoxel(object) {
-
-    var id = object._id;
-
-    data.child(id).set(null);
-
-    scene.remove( object );
-
-    objects = objects.slice( objects.indexOf( object ), 1 );
-
-}
-
-data.on('child_added', function(snapshot) {
-    renderVoxel(snapshot.key(), snapshot.val());
-});
 
 function onMouseUp( event ) {
-    mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
 
     if ( mouse.x === mouseDownCoords.x && mouse.y === mouseDownCoords.y ) {
         raycaster.setFromCamera( mouse, camera );
 
-        var intersects = raycaster.intersectObjects( objects );
+        var intersects = raycaster.intersectObjects( world.objects ),
+            intersect;
 
         if ( intersects.length > 0 ) {
 
-            var intersect = intersects[ 0 ];
+            intersect = intersects[ 0 ];
 
             // delete cube
             if ( isShiftDown ) {
-                removeVoxel( intersect.object );
+                scene.removeVoxel( intersect.object );
             // create cube
             } else {
-                makeVoxel(intersect);
+                scene.makeVoxel(intersect);
             }
 
             render();

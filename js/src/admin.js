@@ -17,18 +17,18 @@ function node(tag, html, classes, container) {
     return node;
 };
 
-function admin(container, data) {
+function admin(container, data, scene) {
 
     var photo = node('img', '', '', container);
     photo.src = data.google.profileImageURL;
 
     var name = node('small', data.google.displayName, 'block', container);
 
-    var userRef = new Firebase(CONFIG.dataRef + 'users/' + data.uid),
+    var userRef = new Firebase(CONFIG.dataRef + '/users/' + data.uid),
         zoneRef;
 
-    var zones = node('ul', '', 'tight no-list', container),
-        newZone = node('button', 'New', '', container);
+    var zones = node('ul', '', 'zones tight no-list', container),
+        newZone = node('button', 'New', 'new-zone-button', container);
 
     newZone.addEventListener('click', function() {
         swal({
@@ -44,9 +44,17 @@ function admin(container, data) {
         });
     });
 
+    zones.addEventListener('click', function(e) {
+        var target = e.target
+        if ( target.hasAttribute('data-id') ) {
+            console.log('updating scene for', target.getAttribute('data-id'))
+            scene.update(data.uid, target.getAttribute('data-id'));
+        }
+    });
+
     userRef.on('child_added', function(snapshot) {
         var li = document.createElement('li');
-        li.setAttribute('data-id', snapshot.name());
+        li.setAttribute('data-id', snapshot.key());
         li.innerHTML = snapshot.val().name;
         zones.appendChild(li);
     });
