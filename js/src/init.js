@@ -170,7 +170,7 @@ function clearAll() {
 
 window.addEventListener('keydown', function(e) {
     // enter
-    if ( e.keyCode === 13 ) uploadSnapshot();
+    // if ( e.keyCode === 13 ) uploadSnapshot();
     // shift
     if ( e.keyCode === 16 ) isShiftDown = true;
     // space bar

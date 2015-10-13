@@ -2,16 +2,19 @@
 @import "normalize";
 @import "reset";
 @import "ui";
+@import "../node_modules/sweetalert/dist/sweetalert.css";
+@import "sweetalert-overrides";
 
 * {
+    box-sizing: border-box;
     position: relative;
 }
 
-.block {
-    display: block;
-}
+.block { display: block; }
+.tight { margin: 0; padding: 0; }
+.no-list { list-style-type: none; }
 
-$admin_width: 120px;
+$admin_width: 140px;
 
 #container {
     position: absolute;

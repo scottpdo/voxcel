@@ -199,32 +199,42 @@ function admin(container, data) {
 
     var name = node('small', data.google.displayName, 'block', container);
 
-    var zoneRef = new Firebase(CONFIG.dataRef + data.uid);
+    var userRef = new Firebase(CONFIG.dataRef + 'users/' + data.uid),
+        zoneRef;
 
-    var zones = node('select', '<option>No zones</option>', '', container),
-        newZone = node('button', 'New Zone', '', container);
+    var zones = node('ul', '', 'tight no-list', container),
+        newZone = node('button', 'New', '', container);
 
     newZone.addEventListener('click', function() {
         swal({
             title: 'Name your zone!',
             text: 'Make it a good name...',
             type: 'input',
-            showCancelButton: true,
-            closeOnConfirm: false,
             animation: "slide-from-top"
         }, function(inputValue){
-            data.child(inputValue).set({
-                created_at: new Date()
-            });
+            userRef.push({
+                name: inputValue,
+                created_at: new Date().getTime()
+            })
+            /* zoneRef = userRef.child(inputValue);
+            zoneRef.set({
+                inputValue: {
+                    created_at: new Date()
+                }
+            }); */
         });
     });
 
-    zoneRef.on('child_added', function(snapshot) {
+    userRef.on('child_added', function(snapshot) {
         if ( newZone ) {
-            newZone.parentNode.removeChild(newZone);
+            // zones.removeChild(zones.firstChild);
+            // newZone.parentNode.removeChild(newZone);
             newZone = false;
         }
-        zones.innerHTML += '<option>' + snapshot.val() + '</option>'
+        var li = document.createElement('li');
+        li.setAttribute('data-id', snapshot.name());
+        li.innerHTML = snapshot.val().name;
+        zones.appendChild(li);
     });
 }
 
@@ -461,7 +471,7 @@ function clearAll() {
 
 window.addEventListener('keydown', function(e) {
     // enter
-    if ( e.keyCode === 13 ) uploadSnapshot();
+    // if ( e.keyCode === 13 ) uploadSnapshot();
     // shift
     if ( e.keyCode === 16 ) isShiftDown = true;
     // space bar
@@ -619,7 +629,6 @@ window.addEventListener( 'mousedown', onMouseDown, false );
 window.addEventListener( 'mouseup', onMouseUp, false );
 
 window.requestAnimationFrame(render);
-
 },{"./T.js":1,"./admin.js":2,"./auth.js":3,"./camera.js":4,"./config.js":5,"./lighting.js":7,"firebase":10,"three.js":13}],7:[function(require,module,exports){
 var THREE = require('three.js');
 

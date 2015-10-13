@@ -24,32 +24,31 @@ function admin(container, data) {
 
     var name = node('small', data.google.displayName, 'block', container);
 
-    var zoneRef = new Firebase(CONFIG.dataRef + data.uid);
+    var userRef = new Firebase(CONFIG.dataRef + 'users/' + data.uid),
+        zoneRef;
 
-    var zones = node('select', '<option>No zones</option>', '', container),
-        newZone = node('button', 'New Zone', '', container);
+    var zones = node('ul', '', 'tight no-list', container),
+        newZone = node('button', 'New', '', container);
 
     newZone.addEventListener('click', function() {
         swal({
             title: 'Name your zone!',
             text: 'Make it a good name...',
             type: 'input',
-            showCancelButton: true,
-            closeOnConfirm: false,
             animation: "slide-from-top"
         }, function(inputValue){
-            data.child(inputValue).set({
-                created_at: new Date()
+            userRef.push({
+                name: inputValue,
+                created_at: new Date().getTime()
             });
         });
     });
 
-    zoneRef.on('child_added', function(snapshot) {
-        if ( newZone ) {
-            newZone.parentNode.removeChild(newZone);
-            newZone = false;
-        }
-        zones.innerHTML += '<option>' + snapshot.val() + '</option>'
+    userRef.on('child_added', function(snapshot) {
+        var li = document.createElement('li');
+        li.setAttribute('data-id', snapshot.name());
+        li.innerHTML = snapshot.val().name;
+        zones.appendChild(li);
     });
 }
 
