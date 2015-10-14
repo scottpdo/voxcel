@@ -1,4 +1,5 @@
-var THREE = require('three.js');
+var THREE = require('three.js'),
+    TWEEN = require('tween.js');
 
 module.exports = function(world, target) {
 
@@ -8,7 +9,9 @@ module.exports = function(world, target) {
         light2 = world.light('#fff', 1, false),
         lightTarget = target;
 
-    light.position.set(-500, 2500, 2000);
+    light.position.set(-500, 2500, 3400);
+    //light.color = new THREE.Color(1, 0, 1);
+
     light2.position.set(2000, 2500, -500);
     light.target = light2.target = lightTarget;
 
@@ -43,25 +46,86 @@ module.exports = function(world, target) {
     var sky = new THREE.Mesh( skyGeo, skyMat );
     scene.add( sky );
 
-    function timeGoesBy() {
-        if ( light.position.z >= -3400 ) {
+    function setTime(time) {
 
-            light.position.z -= 25;
-            light.position.set(light.position.x, light.position.y, light.position.z);
-            if ( light.position.z <= 0 ) {
-                light.color = new THREE.Color( 1, light.color.g - 0.004, light.color.b - 0.01 );
-            }
-            light.target = lightTarget;
+        // time between 0 and 1
+        if ( time < 0 ) time = 0;
+        if ( time > 1 ) time = 1;
 
-            uniforms.topColor.value = new THREE.Color( uniforms.topColor.value.r - 0.01, uniforms.topColor.value.g - 0.01, uniforms.topColor.value.b - 0.01 );
+        var r, g, b;
 
-            sky.material.uniforms = uniforms;
-
-            world.render();
+        function range(min, max) {
+            return max - 2 * (max - min) * Math.abs(time - 0.5);
         }
+
+        // light color
+        r = range(0.8, 0.95);
+        g = range(0.5, 0.95);
+        b = range(0.25, 0.95);
+
+        light.color = new THREE.Color(r, g, b);
+        light.position.z = 6800 * ( 0.5 - time );
+
+        // sky top color
+        r = range(0, 0.333);
+        g = range(0, 0.5);
+        b = range(0.25, 1);
+
+        uniforms.topColor.value = new THREE.Color(r, g, b);
+
+        // sky bottom color
+        r = range(0.6, 0.95);
+        g = range(0.6, 0.95);
+        b = range(0.6, 0.95);
+
+        uniforms.bottomColor.value = new THREE.Color(r, g, b);
+
+        sky.material.uniforms = uniforms;
+
+        world.render();
     }
 
-    return {
-        timeGoesBy: timeGoesBy
+    var time = 0;
+    setTime(0);
+
+    function incrementTime() {
+        time += 0.005;
+        setTime(time);
+    }
+
+    function animateTime(to, duration) {
+
+        var t = new TWEEN.Tween({
+            time: time
+        });
+
+        var animate = function() {
+            TWEEN.update();
+            window.requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        t.to({ time: to }, duration * 1000 || 1000)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onUpdate(function() {
+                time = this.time;
+                setTime(time);
+            }).onComplete(function() {
+                // effectively clear the requestAnimationFrame
+                animate = function() {};
+            });
+
+        t.start();
+    }
+
+    var lighting = {
+        setTime: setTime,
+        incrementTime: incrementTime,
+        animateTime: animateTime
     };
+
+    window.lighting = lighting;
+    
+    return lighting;
 };

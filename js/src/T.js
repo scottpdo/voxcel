@@ -165,7 +165,7 @@ T.prototype.render = function(cb) {
         _this = this;
     function render() {
         _this.renderer.render(_this.scene, _this.camera);
-        cb.bind(_this)(t);
+        if ( cb ) cb.bind(_this)(t);
         t++;
         requestAnimationFrame(render);
     }

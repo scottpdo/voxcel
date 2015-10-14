@@ -36,11 +36,6 @@ var uniforms, skyGeo, skyMat, sky;
 init();
 render();
 
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-}
-
 function init() {
 
     world = new T('container');
@@ -51,15 +46,6 @@ function init() {
 
     renderer = world.renderer;
     renderer.setClearColor('#f2e8e8');
-
-    controls = new THREE.OrbitControls( camera, renderer.domElement );
-    controls.mouseButtons = {
-        ORBIT: THREE.MOUSE.RIGHT,
-        PAN: THREE.MOUSE.LEFT
-    };
-    controls.maxPolarAngle = Math.PI / 2;
-    controls.damping = 0.5;
-    controls.addEventListener( 'change', render );
 
     var rollOverGeo = new THREE.BoxGeometry( 50, 50, 50 );
     rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x5555ff, opacity: 0.5, transparent: true } );
@@ -81,7 +67,10 @@ function init() {
     window.addEventListener( 'resize', onWindowResize, false );
 
     // ----- animate
-    animate();
+    (function animate() {
+        requestAnimationFrame(animate);
+        camera.controls.update();
+    })();
 }
 
 var raycaster = new THREE.Raycaster(),
@@ -127,8 +116,6 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 
     renderer.setSize( world.container.width(), world.container.height() );
-
-    render();
 }
 
 function uploadSnapshot() {
@@ -160,7 +147,7 @@ window.addEventListener('keydown', function(e) {
         // shift
         16: onShiftDown,
         // space bar
-        32: lighting.timeGoesBy
+        32: lighting.incrementTime
     };
     if ( e.keyCode in keys ) keys[e.keyCode](e);
 });
@@ -173,7 +160,6 @@ window.addEventListener('keyup', function(e) {
 function onShiftDown() {
     isShiftDown = true;
     rollOverMesh.visible = false;
-    world.render();
 }
 
 // ----- RAYCASTER
@@ -204,8 +190,6 @@ function onMouseMove( e ) {
             rollOverMesh.visible = false;
         }
     }
-
-    render();
 }
 
 var mouseDownCoords;
@@ -246,9 +230,6 @@ function onMouseUp( event ) {
             } else {
                 scene.makeVoxel(intersect);
             }
-
-            render();
-
         }
     }
 }
@@ -257,4 +238,4 @@ window.addEventListener( 'mousemove', onMouseMove, false );
 window.addEventListener( 'mousedown', onMouseDown, false );
 window.addEventListener( 'mouseup', onMouseUp, false );
 
-window.requestAnimationFrame(render);
+window.requestAnimationFrame(world.render);
