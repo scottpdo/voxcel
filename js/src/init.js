@@ -27,15 +27,15 @@ loginButton.addEventListener('click', function() {
     });
 });
 
-var world, camera, lighting, controls, scene, renderer;
+var world, camera, lighting, scene, renderer;
 
 var rollOverMesh, isShiftDown = false, gridPlane;
-
-var uniforms, skyGeo, skyMat, sky;
 
 init();
 render();
 
+// TODO: move this into once the user has authenticated,
+// replace default home screen with something else
 function init() {
 
     world = new T('container');
@@ -60,17 +60,18 @@ function init() {
     gridPlane = world.mesh(T.Box(100, 1, 100));
     world.objects.push(gridPlane);
 
+    var timeRange = document.getElementById('time-range');
+
     // LIGHTING
-    lighting = require('./lighting.js')(world, plane);
+    lighting = require('./lighting.js')(world, plane, timeRange);
 
     // ----- resize
     window.addEventListener( 'resize', onWindowResize, false );
 
-    // ----- animate
-    (function animate() {
-        requestAnimationFrame(animate);
-        camera.controls.update();
-    })();
+    // ----- MOUSES
+    world.container.el.addEventListener( 'mousemove', onMouseMove, false );
+    world.container.el.addEventListener( 'mousedown', onMouseDown, false );
+    world.container.el.addEventListener( 'mouseup', onMouseUp, false );
 }
 
 var raycaster = new THREE.Raycaster(),
@@ -83,11 +84,6 @@ function render() {
     if ( raycaster ) {
         raycaster.setFromCamera( mouse, camera );
 
-        intersects.forEach(function(intersect) {
-            if ( intersect.object && intersect.object.oldColor ) {
-                intersect.object.material.color = intersect.object.oldColor;
-            }
-        });
         intersects = [];
 
         // calculate objects intersecting the picking ray
@@ -106,9 +102,9 @@ function render() {
     }
 
     renderer.render(world.scene, camera);
-}
 
-world.render = render;
+    window.requestAnimationFrame(render);
+}
 
 function onWindowResize() {
 
@@ -140,7 +136,7 @@ function uploadSnapshot() {
     }, 350);
 };
 
-window.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function(e) {
     var keys = {
         // enter
         // 13: uploadSnapshot,
@@ -152,7 +148,7 @@ window.addEventListener('keydown', function(e) {
     if ( e.keyCode in keys ) keys[e.keyCode](e);
 });
 
-window.addEventListener('keyup', function(e) {
+document.addEventListener('keyup', function(e) {
     // shift up
     if ( e.keyCode === 16 ) isShiftDown = false;
 });
@@ -196,8 +192,6 @@ var mouseDownCoords;
 
 function onMouseDown( event ) {
 
-    event.preventDefault();
-
     if ( isShiftDown ) {
         rollOverMesh.visible = false;
     }
@@ -233,9 +227,3 @@ function onMouseUp( event ) {
         }
     }
 }
-
-window.addEventListener( 'mousemove', onMouseMove, false );
-window.addEventListener( 'mousedown', onMouseDown, false );
-window.addEventListener( 'mouseup', onMouseUp, false );
-
-window.requestAnimationFrame(world.render);

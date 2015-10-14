@@ -78,8 +78,6 @@ function scene(world, user, zone) {
 
 	    world.scene.add( voxel );
 	    world.objects.push( voxel );
-
-	    world.render();
 	}
 
 	function removeVoxel(object) {
@@ -92,13 +90,7 @@ function scene(world, user, zone) {
 		    voxels.child(id).set(null);
 		    world.scene.remove( object );
 		    world.objects = before.concat(after);
-
-		    world.render();
 		}
-
-		console.log('removed voxel', object);
-		console.log('new world objects', world.objects);
-
 	}
 
 	function clearAll() {
@@ -112,7 +104,10 @@ function scene(world, user, zone) {
 	return {
 		update: update,
 		makeVoxel: makeVoxel,
-		removeVoxel: removeVoxel
+		removeVoxel: removeVoxel,
+		zone: function() {
+			return zone;
+		}
 	};
 }
 

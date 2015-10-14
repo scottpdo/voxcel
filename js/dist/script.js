@@ -26,7 +26,7 @@ var T = function(id) {
         FAR
     );
 
-    scene = new THREE.Scene;
+    scene = new THREE.Scene();
     scene.add(camera);
 
     renderer.setSize(WIDTH, HEIGHT);
@@ -161,18 +161,6 @@ T.Mesh = function(geo, material, world) {
     return T.normalize(mesh);
 };
 
-T.prototype.render = function(cb) {
-    var t = 0,
-        _this = this;
-    function render() {
-        _this.renderer.render(_this.scene, _this.camera);
-        if ( cb ) cb.bind(_this)(t);
-        t++;
-        requestAnimationFrame(render);
-    }
-    render();
-}
-
 module.exports = T;
 
 },{"three.js":14}],2:[function(require,module,exports){
@@ -202,10 +190,10 @@ function admin(container, data, scene) {
 
     var name = node('small', data.google.displayName, 'block', container);
 
-    var userRef = new Firebase(CONFIG.dataRef + '/users/' + data.uid),
+    var zonesRef = new Firebase(CONFIG.dataRef + '/users/' + data.uid),
         zoneRef;
 
-    var zones = node('ul', '', 'zones tight no-list', container),
+    var zones = node('ul', '<li class="underline">Zones:</li>', 'zones tight no-list', container),
         newZone = node('button', 'New', 'new-zone-button', container);
 
     newZone.addEventListener('click', function() {
@@ -215,7 +203,7 @@ function admin(container, data, scene) {
             type: 'input',
             animation: "slide-from-top"
         }, function(inputValue){
-            userRef.push({
+            zonesRef.push({
                 name: inputValue,
                 created_at: new Date().getTime()
             });
@@ -223,17 +211,26 @@ function admin(container, data, scene) {
     });
 
     zones.addEventListener('click', function(e) {
-        var target = e.target
+        var target = e.target;
         if ( target.hasAttribute('data-id') ) {
-            console.log('updating scene for', target.getAttribute('data-id'))
+            [].slice.apply(zones.children).forEach(function(li) {
+                li.classList.remove('active');
+            });
+            target.classList.add('active');
             scene.update(data.uid, target.getAttribute('data-id'));
         }
     });
 
-    userRef.on('child_added', function(snapshot) {
+    zonesRef.on('child_added', function(snapshot) {
+        
         var li = document.createElement('li');
         li.setAttribute('data-id', snapshot.key());
         li.innerHTML = snapshot.val().name;
+
+        if ( snapshot.key() === scene.zone() ) {
+            li.classList.add('active');
+        }
+
         zones.appendChild(li);
     });
 }
@@ -285,20 +282,19 @@ module.exports = function(world) {
 
     var camera = world.camera;
 
-    camera.position.x = -1200;
+    camera.position.x = -700;
     camera.position.y = 350;
-    camera.position.z = 500;
+    camera.position.z = 1100;
 
-    var controls = new THREE.OrbitControls( camera, world.renderer.domElement );
+    var controls = new THREE.OrbitControls( camera, world.container.el );
     controls.mouseButtons = {
         ORBIT: THREE.MOUSE.RIGHT,
         PAN: THREE.MOUSE.LEFT
     };
+
     controls.maxPolarAngle = Math.PI / 2;
     controls.maxDistance = 8000;
     controls.damping = 0.5;
-
-    camera.controls = controls;
 
     return camera;
 };
@@ -340,15 +336,15 @@ loginButton.addEventListener('click', function() {
     });
 });
 
-var world, camera, lighting, controls, scene, renderer;
+var world, camera, lighting, scene, renderer;
 
 var rollOverMesh, isShiftDown = false, gridPlane;
-
-var uniforms, skyGeo, skyMat, sky;
 
 init();
 render();
 
+// TODO: move this into once the user has authenticated,
+// replace default home screen with something else
 function init() {
 
     world = new T('container');
@@ -373,17 +369,18 @@ function init() {
     gridPlane = world.mesh(T.Box(100, 1, 100));
     world.objects.push(gridPlane);
 
+    var timeRange = document.getElementById('time-range');
+
     // LIGHTING
-    lighting = require('./lighting.js')(world, plane);
+    lighting = require('./lighting.js')(world, plane, timeRange);
 
     // ----- resize
     window.addEventListener( 'resize', onWindowResize, false );
 
-    // ----- animate
-    (function animate() {
-        requestAnimationFrame(animate);
-        camera.controls.update();
-    })();
+    // ----- MOUSES
+    world.container.el.addEventListener( 'mousemove', onMouseMove, false );
+    world.container.el.addEventListener( 'mousedown', onMouseDown, false );
+    world.container.el.addEventListener( 'mouseup', onMouseUp, false );
 }
 
 var raycaster = new THREE.Raycaster(),
@@ -396,11 +393,6 @@ function render() {
     if ( raycaster ) {
         raycaster.setFromCamera( mouse, camera );
 
-        intersects.forEach(function(intersect) {
-            if ( intersect.object && intersect.object.oldColor ) {
-                intersect.object.material.color = intersect.object.oldColor;
-            }
-        });
         intersects = [];
 
         // calculate objects intersecting the picking ray
@@ -419,9 +411,9 @@ function render() {
     }
 
     renderer.render(world.scene, camera);
-}
 
-world.render = render;
+    window.requestAnimationFrame(render);
+}
 
 function onWindowResize() {
 
@@ -453,7 +445,7 @@ function uploadSnapshot() {
     }, 350);
 };
 
-window.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function(e) {
     var keys = {
         // enter
         // 13: uploadSnapshot,
@@ -465,7 +457,7 @@ window.addEventListener('keydown', function(e) {
     if ( e.keyCode in keys ) keys[e.keyCode](e);
 });
 
-window.addEventListener('keyup', function(e) {
+document.addEventListener('keyup', function(e) {
     // shift up
     if ( e.keyCode === 16 ) isShiftDown = false;
 });
@@ -509,8 +501,6 @@ var mouseDownCoords;
 
 function onMouseDown( event ) {
 
-    event.preventDefault();
-
     if ( isShiftDown ) {
         rollOverMesh.visible = false;
     }
@@ -546,17 +536,11 @@ function onMouseUp( event ) {
         }
     }
 }
-
-window.addEventListener( 'mousemove', onMouseMove, false );
-window.addEventListener( 'mousedown', onMouseDown, false );
-window.addEventListener( 'mouseup', onMouseUp, false );
-
-window.requestAnimationFrame(world.render);
 },{"./T.js":1,"./admin.js":2,"./auth.js":3,"./camera.js":4,"./config.js":5,"./lighting.js":7,"./scene.js":8,"firebase":11,"three.js":14}],7:[function(require,module,exports){
 var THREE = require('three.js'),
     TWEEN = require('tween.js');
 
-module.exports = function(world, target) {
+module.exports = function(world, target, timeRange) {
 
     var scene = world.scene;
 
@@ -636,12 +620,18 @@ module.exports = function(world, target) {
         uniforms.bottomColor.value = new THREE.Color(r, g, b);
 
         sky.material.uniforms = uniforms;
-
-        world.render();
     }
 
     var time = 0;
     setTime(0);
+
+    timeRange.addEventListener('change', function() {
+        setTime(+this.value);
+    });
+
+    timeRange.addEventListener('input', function() {
+        setTime(+this.value);
+    });
 
     function incrementTime() {
         time += 0.005;
@@ -766,8 +756,6 @@ function scene(world, user, zone) {
 
 	    world.scene.add( voxel );
 	    world.objects.push( voxel );
-
-	    world.render();
 	}
 
 	function removeVoxel(object) {
@@ -780,13 +768,7 @@ function scene(world, user, zone) {
 		    voxels.child(id).set(null);
 		    world.scene.remove( object );
 		    world.objects = before.concat(after);
-
-		    world.render();
 		}
-
-		console.log('removed voxel', object);
-		console.log('new world objects', world.objects);
-
 	}
 
 	function clearAll() {
@@ -800,7 +782,10 @@ function scene(world, user, zone) {
 	return {
 		update: update,
 		makeVoxel: makeVoxel,
-		removeVoxel: removeVoxel
+		removeVoxel: removeVoxel,
+		zone: function() {
+			return zone;
+		}
 	};
 }
 

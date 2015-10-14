@@ -1,7 +1,7 @@
 var THREE = require('three.js'),
     TWEEN = require('tween.js');
 
-module.exports = function(world, target) {
+module.exports = function(world, target, timeRange) {
 
     var scene = world.scene;
 
@@ -81,12 +81,18 @@ module.exports = function(world, target) {
         uniforms.bottomColor.value = new THREE.Color(r, g, b);
 
         sky.material.uniforms = uniforms;
-
-        world.render();
     }
 
     var time = 0;
     setTime(0);
+
+    timeRange.addEventListener('change', function() {
+        setTime(+this.value);
+    });
+
+    timeRange.addEventListener('input', function() {
+        setTime(+this.value);
+    });
 
     function incrementTime() {
         time += 0.005;

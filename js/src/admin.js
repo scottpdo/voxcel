@@ -24,10 +24,10 @@ function admin(container, data, scene) {
 
     var name = node('small', data.google.displayName, 'block', container);
 
-    var userRef = new Firebase(CONFIG.dataRef + '/users/' + data.uid),
+    var zonesRef = new Firebase(CONFIG.dataRef + '/users/' + data.uid),
         zoneRef;
 
-    var zones = node('ul', '', 'zones tight no-list', container),
+    var zones = node('ul', '<li class="underline">Zones:</li>', 'zones tight no-list', container),
         newZone = node('button', 'New', 'new-zone-button', container);
 
     newZone.addEventListener('click', function() {
@@ -37,7 +37,7 @@ function admin(container, data, scene) {
             type: 'input',
             animation: "slide-from-top"
         }, function(inputValue){
-            userRef.push({
+            zonesRef.push({
                 name: inputValue,
                 created_at: new Date().getTime()
             });
@@ -45,17 +45,26 @@ function admin(container, data, scene) {
     });
 
     zones.addEventListener('click', function(e) {
-        var target = e.target
+        var target = e.target;
         if ( target.hasAttribute('data-id') ) {
-            console.log('updating scene for', target.getAttribute('data-id'))
+            [].slice.apply(zones.children).forEach(function(li) {
+                li.classList.remove('active');
+            });
+            target.classList.add('active');
             scene.update(data.uid, target.getAttribute('data-id'));
         }
     });
 
-    userRef.on('child_added', function(snapshot) {
+    zonesRef.on('child_added', function(snapshot) {
+        
         var li = document.createElement('li');
         li.setAttribute('data-id', snapshot.key());
         li.innerHTML = snapshot.val().name;
+
+        if ( snapshot.key() === scene.zone() ) {
+            li.classList.add('active');
+        }
+
         zones.appendChild(li);
     });
 }

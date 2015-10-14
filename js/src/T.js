@@ -25,7 +25,7 @@ var T = function(id) {
         FAR
     );
 
-    scene = new THREE.Scene;
+    scene = new THREE.Scene();
     scene.add(camera);
 
     renderer.setSize(WIDTH, HEIGHT);
@@ -159,17 +159,5 @@ T.Mesh = function(geo, material, world) {
     world.scene.add(mesh);
     return T.normalize(mesh);
 };
-
-T.prototype.render = function(cb) {
-    var t = 0,
-        _this = this;
-    function render() {
-        _this.renderer.render(_this.scene, _this.camera);
-        if ( cb ) cb.bind(_this)(t);
-        t++;
-        requestAnimationFrame(render);
-    }
-    render();
-}
 
 module.exports = T;

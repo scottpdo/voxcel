@@ -78,9 +78,51 @@ img {
 }
 
 .zones {
+    font-size: 14px;
     margin-top: 1em;
+
+    li {
+        cursor: pointer;
+        padding: 2px;
+
+        &:active, &:focus, &:hover {
+            color: #555;
+        }
+    }
+
+    .underline {
+        border-bottom: 1px solid;
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    .active {
+        background: #bbe;
+    }
 }
 
 .new-zone-button {
     margin-top: 1em;
+}
+
+.time-range-container {
+    position: fixed;
+    bottom: 1.5em;
+    left: calc(50% - 100px);
+    width: 200px;
+
+    label,
+    input {
+        float: left;
+        padding: 0;
+    }
+
+    label {
+        top: -3px;
+        width: 50px;
+    }
+
+    input {
+        width: 150px;
+    }
 }
