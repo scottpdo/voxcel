@@ -10,7 +10,6 @@ module.exports = function(world, target, timeRange) {
         lightTarget = target;
 
     light.position.set(-500, 2500, 3400);
-    //light.color = new THREE.Color(1, 0, 1);
 
     light2.position.set(2000, 2500, -500);
     light.target = light2.target = lightTarget;
@@ -46,11 +45,13 @@ module.exports = function(world, target, timeRange) {
     var sky = new THREE.Mesh( skyGeo, skyMat );
     scene.add( sky );
 
-    function setTime(time) {
+    function setTime(time, force) {
 
         // time between 0 and 1
         if ( time < 0 ) time = 0;
         if ( time > 1 ) time = 1;
+
+        if ( force ) timeRange.value = time;
 
         var r, g, b;
 
@@ -84,7 +85,7 @@ module.exports = function(world, target, timeRange) {
     }
 
     var time = 0;
-    setTime(0);
+    setTime(0.333, true);
 
     timeRange.addEventListener('change', function() {
         setTime(+this.value);
@@ -96,7 +97,7 @@ module.exports = function(world, target, timeRange) {
 
     function incrementTime() {
         time += 0.005;
-        setTime(time);
+        setTime(time, true);
     }
 
     function animateTime(to, duration) {

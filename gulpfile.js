@@ -77,9 +77,6 @@ gulp.task('publish', function() {
         secretAccessKey: aws.secret
     });
 
-    css();
-    js();
-
     for ( var key in site ) {
         gulp.src(key)
             .pipe(gulp.dest('site/' + site[key]))

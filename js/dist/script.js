@@ -209,10 +209,11 @@ function admin(container, data, router) {
             showCancelButton: true
         }, function(inputValue){
             if ( inputValue ) {
-                zonesRef.push({
+                var id = zonesRef.push({
                     name: inputValue,
                     created_at: new Date().getTime()
                 });
+                router.set('zone', id.key());
             }
         });
     });
@@ -347,11 +348,21 @@ loginButton.on('click', function() {
 });
 
 $('.help span').on('click', function() {
+    var helperText = '<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p><p><b>Right click and drag</b> to rotate the camera.</p><p><b>Left click and drag</b> to pan the camera.</p>';
+
+    if ( !auth.getUser() ) {
+        helperText += '<p>Once you log in, you can create zones of your own!</p>';
+    } else {
+        helperText += '<p><b>Click</b> to create a new block.';
+        helperText += '<p><b>Shift + click</b> to remove a block.</p>';
+        helperText += '<p>Have fun!</p>';
+    }
+
     swal({
         title: '3d',
         allowOutsideClick: true,
         showConfirmButton: false,
-        text: '<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p><p><b>Right click and drag</b> to rotate the camera.</p><p><b>Left click and drag</b> to pan the camera.</p><p>Once you log in, you can create zones of your own!</p>',
+        text: helperText,
         animation: "slide-from-top",
         html: true,
         customClass: 'alignleft'
@@ -374,7 +385,7 @@ function init() {
     camera = require('./camera.js')(world);
 
     
-    var sceneParams = [world, 'google:104314934710208349695', 'test'];
+    var sceneParams = [world, '104314934710208349695', 'test'];
     if ( router.get('user') && router.get('zone') ) {
         sceneParams = [world, router.get('user'), router.get('zone')];
     }
@@ -618,11 +629,13 @@ module.exports = function(world, target, timeRange) {
     var sky = new THREE.Mesh( skyGeo, skyMat );
     scene.add( sky );
 
-    function setTime(time) {
+    function setTime(time, force) {
 
         // time between 0 and 1
         if ( time < 0 ) time = 0;
         if ( time > 1 ) time = 1;
+
+        if ( force ) timeRange.value = time;
 
         var r, g, b;
 
@@ -656,7 +669,7 @@ module.exports = function(world, target, timeRange) {
     }
 
     var time = 0;
-    setTime(0);
+    setTime(0.333, true);
 
     timeRange.addEventListener('change', function() {
         setTime(+this.value);
@@ -668,7 +681,7 @@ module.exports = function(world, target, timeRange) {
 
     function incrementTime() {
         time += 0.005;
-        setTime(time);
+        setTime(time, true);
     }
 
     function animateTime(to, duration) {

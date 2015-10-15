@@ -43,10 +43,11 @@ function admin(container, data, router) {
             showCancelButton: true
         }, function(inputValue){
             if ( inputValue ) {
-                zonesRef.push({
+                var id = zonesRef.push({
                     name: inputValue,
                     created_at: new Date().getTime()
                 });
+                router.set('zone', id.key());
             }
         });
     });
