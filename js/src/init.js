@@ -1,20 +1,24 @@
 var CONFIG = require('./config.js'),
     THREE = require('three.js'),
     T = require('./T.js'),
-    Firebase = require('firebase');
+    Firebase = require('firebase'),
+    swal = require('sweetalert'),
+    $ = require('zepto-browserify').$;
+
+var router = require('./router.js')();
 
 var dataRef = new Firebase(CONFIG.dataRef),
     auth = require('./auth.js')(dataRef), // needs base dataRef to init authentication
-    adminContainer = document.getElementById('admin'),
-    loginButton = document.getElementById('login');
+    adminContainer = $('#admin'),
+    loginButton = $('#login');
 
-loginButton.addEventListener('click', function() {
+loginButton.on('click', function() {
 
     // on successful login, initialize admin
     function success(data) {
-        loginButton.parentNode.removeChild(loginButton);
+        loginButton.remove();
         // set up admin
-        require('./admin.js')(adminContainer, data, scene);
+        require('./admin.js')(adminContainer, data, router);
     }
 
     function error() {
@@ -24,6 +28,18 @@ loginButton.addEventListener('click', function() {
     auth.login({
         success: success,
         error: error
+    });
+});
+
+$('.help span').on('click', function() {
+    swal({
+        title: '3d',
+        allowOutsideClick: true,
+        showConfirmButton: false,
+        text: '<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p><p><b>Right click and drag</b> to rotate the camera.</p><p><b>Left click and drag</b> to pan the camera.</p><p>Once you log in, you can create zones of your own!</p>',
+        animation: "slide-from-top",
+        html: true,
+        customClass: 'alignleft'
     });
 });
 
@@ -42,7 +58,16 @@ function init() {
 
     camera = require('./camera.js')(world);
 
-    scene = require('./scene.js')(world, 'google:104314934710208349695', 'test');
+    
+    var sceneParams = [world, 'google:104314934710208349695', 'test'];
+    if ( router.get('user') && router.get('zone') ) {
+        sceneParams = [world, router.get('user'), router.get('zone')];
+    }
+    scene = require('./scene.js').apply(null, sceneParams);
+
+    router.change('zone', function(id) {
+        scene.update(router.get('user'), id);
+    });
 
     renderer = world.renderer;
     renderer.setClearColor('#f2e8e8');
@@ -115,10 +140,8 @@ function onWindowResize() {
 }
 
 function uploadSnapshot() {
-    var canvas = document.getElementsByTagName('canvas')[0];
-
     var url = 'http://gentle-stream-4461.herokuapp.com/upload/',
-        canvas = document.getElementsByTagName('canvas')[0],
+        canvas = $('canvas'),
         dataURL = canvas.toDataURL().split(',')[1],
         xhr = new XMLHttpRequest(),
         data = JSON.stringify({ image: dataURL });
@@ -130,9 +153,9 @@ function uploadSnapshot() {
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xhr.send(data);
 
-    canvas.classList.add('faded');
+    canvas.addClass('faded');
     setTimeout(function(){
-        canvas.classList.remove('faded');
+        canvas.removeClass('faded');
     }, 350);
 };
 
@@ -168,7 +191,7 @@ function onMouseMove( e ) {
     mouse.x = ( e.offsetX / world.container.width() ) * 2 - 1
     mouse.y = - ( e.offsetY / world.container.height() ) * 2 + 1
 
-    if ( auth.getUser() ) {
+    if ( auth.getUser() && auth.getUser('id').indexOf(router.get('user')) > -1 ) {
 
         raycaster.setFromCamera( mouse, camera );
 
@@ -210,19 +233,23 @@ function onMouseUp( event ) {
     if ( mouse.x === mouseDownCoords.x && mouse.y === mouseDownCoords.y ) {
         raycaster.setFromCamera( mouse, camera );
 
-        var intersects = raycaster.intersectObjects( world.objects ),
-            intersect;
+        // must be logged in and the scene's user
+        if ( auth.getUser() && auth.getUser('id').indexOf(router.get('user')) > -1 ) {
 
-        if ( intersects.length > 0 ) {
+            var intersects = raycaster.intersectObjects( world.objects ),
+                intersect;
 
-            intersect = intersects[ 0 ];
+            if ( intersects.length > 0 ) {
 
-            // delete cube
-            if ( isShiftDown ) {
-                scene.removeVoxel( intersect.object );
-            // create cube
-            } else {
-                scene.makeVoxel(intersect);
+                intersect = intersects[ 0 ];
+
+                // delete cube
+                if ( isShiftDown ) {
+                    scene.removeVoxel( intersect.object );
+                // create cube
+                } else {
+                    scene.makeVoxel(intersect);
+                }
             }
         }
     }

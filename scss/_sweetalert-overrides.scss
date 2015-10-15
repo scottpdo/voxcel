@@ -1,4 +1,19 @@
-.sweet-alert button {
-	margin-left: 0;
-	margin-right: 0;
+.sweet-alert {
+
+	p {
+		margin: 1em 0;
+	}
+
+	button {
+		margin-left: 0;
+		margin-right: 0;
+	}
+
+	&.alignleft {
+		text-align: left;
+	}
+
+	&.alignright {
+		text-align: right;
+	}
 }

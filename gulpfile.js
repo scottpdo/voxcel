@@ -34,7 +34,7 @@ var site = {
     'js/dist/script.min.js': 'js/dist'
 };
 
-gulp.task('css', function() {
+function css() {
 
     var processors = [
         autoprefixer('last 2 versions')
@@ -48,9 +48,11 @@ gulp.task('css', function() {
         .pipe(gulp.dest( paths.cssOut ))
         .pipe(reload({ stream: true }));
 
-});
+}
 
-gulp.task('js', function() {
+gulp.task('css', css);
+
+function js() {
 
     browserify('js/src/init.js').bundle()
         .pipe(source('script.js'))
@@ -61,7 +63,9 @@ gulp.task('js', function() {
         .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest('js/dist'));
-});
+}
+
+gulp.task('js', js);
 
 gulp.task('publish', function() {
 
@@ -73,6 +77,14 @@ gulp.task('publish', function() {
         secretAccessKey: aws.secret
     });
 
+    css();
+    js();
+
+    for ( var key in site ) {
+        gulp.src(key)
+            .pipe(gulp.dest('site/' + site[key]))
+    }
+
     gulp.src('site/**/*')
         .pipe(publisher.publish())
         .pipe(publisher.sync())
@@ -81,15 +93,22 @@ gulp.task('publish', function() {
 });
 
 gulp.task('watch', ['css', 'js'], function() {
+
+    gulp.watch( 'scss/**/*.scss', ['css']).on('change', function() {
+        css();
+        reload();
+    });
+    gulp.watch( 'js/src/**/*.js', ['js'] ).on('change', function() {
+        js();
+        reload();
+    });
+    gulp.watch( paths.html ).on('change', reload);
+
     browserSync.init({
         server: {
             baseDir: './'
         }
     });
-
-    gulp.watch( 'scss/**/*.scss', ['css']).on('change', reload);
-    gulp.watch( 'js/src/**/*.js', ['js'] ).on('change', reload);
-    gulp.watch( paths.html ).on('change', reload);
 
     for ( var key in site ) {
         gulp.src(key)

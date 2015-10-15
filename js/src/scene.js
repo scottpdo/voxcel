@@ -32,7 +32,7 @@ function scene(world, user, zone) {
 			data.user = user;
 			data.zone = zone;
 
-			var dataRef = new Firebase(CONFIG.dataRef + '/users/' + data.user + '/' + data.zone);
+			var dataRef = new Firebase(CONFIG.dataRef + '/users/google:' + data.user + '/' + data.zone);
 			voxels = dataRef.child('voxels');
 
 			clearAll();
@@ -105,9 +105,8 @@ function scene(world, user, zone) {
 		update: update,
 		makeVoxel: makeVoxel,
 		removeVoxel: removeVoxel,
-		zone: function() {
-			return zone;
-		}
+		zone: function() { return data.zone; },
+		user: function() { return data.user; }
 	};
 }
 

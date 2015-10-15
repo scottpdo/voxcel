@@ -72,6 +72,28 @@ a:active, a:focus, a:hover {
     width: $admin_width;
 }
 
+    .help {
+        bottom: 10px;
+        left: 0;
+        text-align: center;
+        position: absolute;
+        width: 100%;
+
+        span {
+            border: 2px solid;
+            border-radius: 50%;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: bold;
+            height: 24px;
+            width: 24px;
+
+            &:active, &:focus, &:hover {
+                color: #999;
+            }
+        }
+    }
+
 img {
     height: auto;
     max-width: 100%;
@@ -106,23 +128,26 @@ img {
 }
 
 .time-range-container {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px;
     position: fixed;
     bottom: 1.5em;
     left: calc(50% - 100px);
-    width: 200px;
+    width: 210px;
 
     label,
     input {
         float: left;
+        margin: 0;
         padding: 0;
     }
 
     label {
-        top: -3px;
         width: 50px;
     }
 
     input {
-        width: 150px;
+        border: 0;
+        width: 146px;
     }
 }
