@@ -1,4 +1,4 @@
-module.exports = function(ref) {
+module.exports = function auth(ref) {
 
     var user = false;
 
@@ -10,11 +10,11 @@ module.exports = function(ref) {
                 return error(err);
             } else {
                 user = {
-                    id: authData.auth.uid,
+                    id: authData.auth.uid.replace('google:', ''),
                     name: authData.google.displayName,
                     photo: authData.google.profileImageURL
                 };
-                return success(authData);
+                return success(user);
             }
         });
     }

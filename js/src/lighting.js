@@ -1,7 +1,8 @@
 var THREE = require('three.js'),
-    TWEEN = require('tween.js');
+    TWEEN = require('tween.js'),
+    clamp = require('./utils/clamp.js');
 
-module.exports = function(world, target, timeRange) {
+module.exports = function(world, target) {
 
     var scene = world.scene;
 
@@ -45,13 +46,34 @@ module.exports = function(world, target, timeRange) {
     var sky = new THREE.Mesh( skyGeo, skyMat );
     scene.add( sky );
 
+    var timeRange = document.getElementById('time-range');
+    if ( !timeRange ) {
+        timeRange = document.createElement('input');
+        timeRange.id = 'time-range';
+        timeRange.type = 'range';
+        timeRange.setAttribute('min', 0);
+        timeRange.setAttribute('max', 1);
+        timeRange.setAttribute('step', 0.001);
+
+        var timeRangeContainer = document.createElement('div');
+        timeRangeContainer.classList.add('time-range-container');
+        var label = document.createElement('label');
+        label.setAttribute('for', 'time-range');
+        label.innerHTML = 'Time:';
+
+        timeRangeContainer.appendChild(label);
+        timeRangeContainer.appendChild(timeRange);
+
+        document.body.appendChild(timeRangeContainer);
+    }
+
     function setTime(time, force) {
 
         // time between 0 and 1
-        if ( time < 0 ) time = 0;
-        if ( time > 1 ) time = 1;
+        time = clamp(time, 0, 1);
 
         if ( force ) timeRange.value = time;
+        theTime = time;
 
         var r, g, b;
 
@@ -84,8 +106,8 @@ module.exports = function(world, target, timeRange) {
         sky.material.uniforms = uniforms;
     }
 
-    var time = 0;
-    setTime(0.333, true);
+    var theTime = 0.25;
+    setTime(theTime, true);
 
     timeRange.addEventListener('change', function() {
         setTime(+this.value);
@@ -96,8 +118,8 @@ module.exports = function(world, target, timeRange) {
     });
 
     function incrementTime() {
-        time += 0.005;
-        setTime(time, true);
+        theTime += 0.005;
+        setTime(theTime, true);
     }
 
     function animateTime(to, duration) {
@@ -133,6 +155,11 @@ module.exports = function(world, target, timeRange) {
     };
 
     window.lighting = lighting;
+
+    document.addEventListener('keydown', function(e) {
+        // space bar to increment time
+        if ( e.keyCode === 32 ) lighting.incrementTime();
+    });
     
     return lighting;
 };

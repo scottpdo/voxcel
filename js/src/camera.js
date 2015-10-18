@@ -11,8 +11,8 @@ module.exports = function(world) {
 
     var controls = new THREE.OrbitControls( camera, world.container.el );
     controls.mouseButtons = {
-        ORBIT: THREE.MOUSE.RIGHT,
-        PAN: THREE.MOUSE.LEFT
+        ORBIT: THREE.MOUSE.LEFT,
+        PAN: THREE.MOUSE.RIGHT
     };
 
     controls.maxPolarAngle = Math.PI / 2;

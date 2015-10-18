@@ -91,21 +91,15 @@ gulp.task('publish', function() {
 
 gulp.task('watch', ['css', 'js'], function() {
 
-    gulp.watch( 'scss/**/*.scss', ['css']).on('change', function() {
-        css();
-        reload();
-    });
-    gulp.watch( 'js/src/**/*.js', ['js'] ).on('change', function() {
-        js();
-        reload();
-    });
-    gulp.watch( paths.html ).on('change', reload);
-
     browserSync.init({
         server: {
             baseDir: './'
         }
     });
+
+    gulp.watch( 'scss/**/*.scss', ['css']).on('change', reload);
+    gulp.watch( 'js/src/**/*.js', ['js'] ).on('change', reload);
+    gulp.watch( paths.html ).on('change', reload);
 
     for ( var key in site ) {
         gulp.src(key)

@@ -1,7 +1,40 @@
 var CONFIG = require('./config.js'),
 	Firebase = require('firebase'),
 	THREE = require('three.js'),
-	T = require('./T.js');
+	T = require('./T.js'),
+	random = require('./utils/random.js');
+
+var world, 
+    camera, 
+    lighting;
+
+function init(container, router) {
+
+    world = new T(container.attr('id'));
+    camera = require('./camera.js')(world);
+
+    world.renderer.setClearColor('#f2e8e8');
+
+    // GROUND PLANE
+    var plane = world.mesh(T.Box(100000, 1, 100000), T.Material('lambert', '#888')).y(-2);
+
+    var gridPlane = world.mesh(T.Box(100, 1, 100));
+    world.objects.push(gridPlane);
+
+    // LIGHTING
+    lighting = require('./lighting.js')(world, plane);
+
+    function onWindowResize() {
+
+        camera.aspect = world.container.width() / world.container.height();
+        camera.updateProjectionMatrix();
+
+        world.renderer.setSize( world.container.width(), world.container.height() );
+    }
+
+    // ----- resize
+    window.addEventListener( 'resize', onWindowResize, false );
+}
 
 function vectorFromId(id) {
     var x = +id.split(',')[0],
@@ -12,18 +45,17 @@ function vectorFromId(id) {
     return output;
 }
 
-function randCharFromString(str) {
-    return str[Math.floor(Math.random() * str.length)];
-}
-
 // pass in the world (from T.js), user ID and zone
-function scene(world, user, zone) {
+function scene(container, router) {
+
+	init(container, router);
 
 	var data = {
-			user: user,
-			zone: zone
+			user: router.get('user'),
+			zone: router.get('zone')
 		},
-		voxels;
+		voxels,
+		renderQueue = [];
 
 	function update(user, zone) {
 
@@ -40,10 +72,26 @@ function scene(world, user, zone) {
 			voxels.on('child_added', function(snapshot) {
 				renderVoxel(snapshot.key(), snapshot.val());
 			});
+
+			voxels.on('child_removed', function(snapshot) {
+				removeVoxel(snapshot.key());
+			});
 		}
 	}
 
-	update(user, zone);
+	function render() {
+		world.renderer.render(world.scene, camera);
+	}
+
+	function renderAll() {
+		renderQueue.forEach(function(func) {
+			func();
+		});
+		window.requestAnimationFrame(renderAll);
+	}
+
+	renderQueue.unshift(render);
+	renderAll();
 
 	function cube(color) {
 	    var box = world.mesh(T.Box(50, 50, 50), T.Material(color || '#ccc'));
@@ -53,7 +101,7 @@ function scene(world, user, zone) {
 	function makeVoxel(intersect) {
 	    
 	    var hex = '56789abcdef',
-	        hexVal = randCharFromString(hex),
+	        hexVal = random(hex),
 	        color = '#' + hexVal + hexVal + hexVal;
 
 	    // set position (and thus id) from intersect (rollOverMesh)
@@ -80,17 +128,23 @@ function scene(world, user, zone) {
 	    world.objects.push( voxel );
 	}
 
-	function removeVoxel(object) {
+	function removeVoxel(id) {
 
-	    var id = object._id,
-	    	before = world.objects.slice(0, world.objects.indexOf(object)),
-	    	after = world.objects.slice(world.objects.indexOf(object) + 1);
+	    var object;
 
-	    if ( id ) {
-		    voxels.child(id).set(null);
-		    world.scene.remove( object );
-		    world.objects = before.concat(after);
-		}
+	    for ( var i = 0; i < world.objects.length; i++ ) {
+	    	if ( world.objects[i]._id === id ) {
+	    		object = world.objects[i];
+		    	break;
+	    	}
+	    }
+
+    	var before = world.objects.slice(0, i),
+	    	after = world.objects.slice(i + 1);
+
+	    voxels.child(id).set(null);
+	    world.scene.remove( object );
+	    world.objects = before.concat(after);
 	}
 
 	function clearAll() {
@@ -103,10 +157,12 @@ function scene(world, user, zone) {
 
 	return {
 		update: update,
-		makeVoxel: makeVoxel,
+		renderQueue: renderQueue,
 		removeVoxel: removeVoxel,
+		makeVoxel: makeVoxel,
 		zone: function() { return data.zone; },
-		user: function() { return data.user; }
+		user: function() { return data.user; },
+		world: world
 	};
 }
 

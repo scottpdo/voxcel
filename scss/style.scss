@@ -10,6 +10,11 @@
     position: relative;
 }
 
+body {
+    color: #575757;
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+}
+
 .block { display: block; }
 .tight { margin: 0; padding: 0; }
 .no-list { list-style-type: none; }
@@ -66,6 +71,7 @@ a:active, a:focus, a:hover {
 
 #admin {
     background: #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
     height: 100vh;
     padding: 10px;
     position: absolute;
@@ -85,8 +91,8 @@ a:active, a:focus, a:hover {
             cursor: pointer;
             display: inline-block;
             font-weight: bold;
-            height: 24px;
-            width: 24px;
+            height: 26px;
+            width: 26px;
 
             &:active, &:focus, &:hover {
                 color: #999;
