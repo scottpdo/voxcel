@@ -19,8 +19,15 @@ if ( router.get('user') && router.get('zone') ) {
     view.show('default');
 }
 
-router.change('zone', function() {
-    if ( scene ) scene.update(router.get('user'), router.get('zone'));
+router.when('/', function() {
+    view.show('default');
+});
+
+router.change('zone', function(id) {
+    if ( !scene ) {
+        scene = view.show('scene', router);
+    }
+    scene.update(router.get('user'), id);
 });
 
 loginButton.on('click', function() {

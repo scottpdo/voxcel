@@ -1,10 +1,12 @@
 var Router = function() {
 
-	var paths = {},
+	var paths = setPaths(),
+		changeEvents = {},
 		events = {};
 
 	function setPaths() {
-		var hash = window.location.hash,
+		var paths = {},
+			hash = window.location.hash,
 			segments;
 		if ( hash.length > 2 ) {
 			segments = hash.slice(2).split('/');
@@ -15,6 +17,7 @@ var Router = function() {
 				}
 			});
 		}
+		return paths;
 	}
 
 	function set(key, val) {
@@ -33,6 +36,7 @@ var Router = function() {
 			hash += '/' + key + '/' + val;
 		}
 		window.location.hash = hash;
+		return router;
 	}
 
 	function setAll(obj) {
@@ -41,6 +45,7 @@ var Router = function() {
 			hash += key + '/' + obj[key];
 		}
 		window.location.hash = hash;
+		return router;
 	}
 
 	function get(key) {
@@ -48,29 +53,61 @@ var Router = function() {
 	}
 
 	function change(key, cb) {
+		changeEvents[key] = cb;
+		return router;
+	}
+
+	function when(key, cb) {
+		var hash = window.location.hash.slice(1);
+
+		// add callback
 		events[key] = cb;
+
+		// check if it needs to run immediately
+		if ( hash === key ) cb();
+	
+		return router;
 	}
 
 	function runEvents() {
-		var key;
-		for ( var ev in events ) {
-			key = paths[ev];
-			events[ev](key);
+		// only trigger events for specific item that has changed
+		var newPaths = setPaths(),
+			path,
+			key,
+			hash = window.location.hash.slice(1);
+
+		for ( path in newPaths ) {
+			if ( paths[path] !== newPaths[path] && changeEvents[path] ) {
+				key = newPaths[path];
+				changeEvents[path](key);
+			}
+		}
+
+		for ( path in events ) {
+			if ( hash === path ) {
+				events[path]();
+			}
 		}
 	}
 
-	setPaths();
 	window.addEventListener('hashchange', function() {
-		setPaths();
+
+		if ( !window.location.hash ) window.location.hash = '#/';
+
 		runEvents();
+		// finally update with new paths
+		paths = setPaths();
 	});
 
-	return {
+	var router = {
 		change: change,
+		when: when,
 		set: set,
 		setAll: setAll,
 		get: get
 	};
+
+	return router;
 };
 
 module.exports = Router;

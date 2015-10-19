@@ -64,7 +64,7 @@ function scene(container, router) {
 			data.user = user;
 			data.zone = zone;
 
-			var dataRef = new Firebase(CONFIG.dataRef + '/users/google:' + data.user + '/' + data.zone);
+			var dataRef = new Firebase(CONFIG.dataRef + '/users/' + data.user + '/' + data.zone);
 			voxels = dataRef.child('voxels');
 
 			clearAll();

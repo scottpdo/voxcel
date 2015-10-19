@@ -29,15 +29,16 @@ function setVars(_router, data, _scene) {
 }
 
 function setupUI(container, router, data) {
-    var photo = node('img', '', '', container);
-    photo.attr('src', data.photo);
+
+    var photo = node('div', '', 'photo', container);
+    photo.css('background-image', 'url(' + data.photo + ')');
 
     var name = node('small', data.name, 'block', container);
 
-    var zonesRef = new Firebase(CONFIG.dataRef + '/users/' + data.id),
+    var zonesRef = new Firebase(CONFIG.dataRef + '/users/' + userId),
         zoneRef;
 
-    router.set('user', data.id);
+    router.set('user', userId);
 
     var zones = node('ul', '<li class="underline">Zones:</li>', 'zones tight no-list', container),
         newZone = node('button', 'New', 'new-zone-button', container);
@@ -77,6 +78,8 @@ function setupUI(container, router, data) {
         
         var li = node('li', snapshot.val().name);
         li.attr('data-id', snapshot.key());
+
+        console.log(snapshot.val().name, snapshot.key(), router.get('zone'));
 
         if ( snapshot.key() === router.get('zone') ) {
             li.addClass('active');

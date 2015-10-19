@@ -1,4 +1,5 @@
-var Firebase = require('firebase'),
+var CONFIG = require('./config.js'),
+	Firebase = require('firebase'),
 	THREE = require('three.js'),
 	T = require('./T.js'),
 	$ = require('zepto-browserify').$,
@@ -16,6 +17,21 @@ var views = {
 
 		var img = node('img', '', '', container);
 		img.attr('src', 'http://i.imgur.com/czmQqcy.gif');
+
+		var welcome = node('div', '<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p><p>Check out some zones:</p>', '', container);
+
+		var zones = new Firebase(CONFIG.dataRef),
+			zonesList = node('ul', '', '', container);
+		zones.on('value', function(snapshot) {
+			var users = snapshot.val().users,
+				user,
+				zone;
+			for ( user in users ) {
+				for ( zone in users[user] ) {
+					zonesList.append('<li><a href="/#/user/' + user + '/zone/' + zone + '">' + users[user][zone].name + '</a></li>');
+				}
+			}
+		});
 	},
 	"scene": function(container, router) {
 		var scene = require('./scene.js')(container, router);
@@ -34,7 +50,8 @@ module.exports = function(container) {
 			}
 
 			// clear container
-			container.html('').css({});
+			container.html('')
+			container.css('padding', 0);
 
 			// render view
 			return views[which].apply(null, [container].concat([].slice.apply(arguments).slice(1)));

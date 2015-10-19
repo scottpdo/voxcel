@@ -77,6 +77,13 @@ a:active, a:focus, a:hover {
     position: absolute;
     width: $admin_width;
 }
+    
+    .photo {
+        background-position: center center;
+        background-size: cover;
+        height: 90px;
+        width: 100%;
+    }
 
     .help {
         bottom: 10px;

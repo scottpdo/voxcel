@@ -195,15 +195,16 @@ function setVars(_router, data, _scene) {
 }
 
 function setupUI(container, router, data) {
-    var photo = node('img', '', '', container);
-    photo.attr('src', data.photo);
+
+    var photo = node('div', '', 'photo', container);
+    photo.css('background-image', 'url(' + data.photo + ')');
 
     var name = node('small', data.name, 'block', container);
 
-    var zonesRef = new Firebase(CONFIG.dataRef + '/users/' + data.id),
+    var zonesRef = new Firebase(CONFIG.dataRef + '/users/' + userId),
         zoneRef;
 
-    router.set('user', data.id);
+    router.set('user', userId);
 
     var zones = node('ul', '<li class="underline">Zones:</li>', 'zones tight no-list', container),
         newZone = node('button', 'New', 'new-zone-button', container);
@@ -243,6 +244,8 @@ function setupUI(container, router, data) {
         
         var li = node('li', snapshot.val().name);
         li.attr('data-id', snapshot.key());
+
+        console.log(snapshot.val().name, snapshot.key(), router.get('zone'));
 
         if ( snapshot.key() === router.get('zone') ) {
             li.addClass('active');
@@ -491,8 +494,15 @@ if ( router.get('user') && router.get('zone') ) {
     view.show('default');
 }
 
-router.change('zone', function() {
-    if ( scene ) scene.update(router.get('user'), router.get('zone'));
+router.when('/', function() {
+    view.show('default');
+});
+
+router.change('zone', function(id) {
+    if ( !scene ) {
+        scene = view.show('scene', router);
+    }
+    scene.update(router.get('user'), id);
 });
 
 loginButton.on('click', function() {
@@ -708,11 +718,13 @@ module.exports = function(world, target) {
 },{"./shaders/fragmentShader.js":10,"./shaders/vertexShader.js":11,"./utils/clamp.js":12,"three.js":19,"tween.js":20}],8:[function(require,module,exports){
 var Router = function() {
 
-	var paths = {},
+	var paths = setPaths(),
+		changeEvents = {},
 		events = {};
 
 	function setPaths() {
-		var hash = window.location.hash,
+		var paths = {},
+			hash = window.location.hash,
 			segments;
 		if ( hash.length > 2 ) {
 			segments = hash.slice(2).split('/');
@@ -723,6 +735,7 @@ var Router = function() {
 				}
 			});
 		}
+		return paths;
 	}
 
 	function set(key, val) {
@@ -741,6 +754,7 @@ var Router = function() {
 			hash += '/' + key + '/' + val;
 		}
 		window.location.hash = hash;
+		return router;
 	}
 
 	function setAll(obj) {
@@ -749,6 +763,7 @@ var Router = function() {
 			hash += key + '/' + obj[key];
 		}
 		window.location.hash = hash;
+		return router;
 	}
 
 	function get(key) {
@@ -756,29 +771,61 @@ var Router = function() {
 	}
 
 	function change(key, cb) {
+		changeEvents[key] = cb;
+		return router;
+	}
+
+	function when(key, cb) {
+		var hash = window.location.hash.slice(1);
+
+		// add callback
 		events[key] = cb;
+
+		// check if it needs to run immediately
+		if ( hash === key ) cb();
+	
+		return router;
 	}
 
 	function runEvents() {
-		var key;
-		for ( var ev in events ) {
-			key = paths[ev];
-			events[ev](key);
+		// only trigger events for specific item that has changed
+		var newPaths = setPaths(),
+			path,
+			key,
+			hash = window.location.hash.slice(1);
+
+		for ( path in newPaths ) {
+			if ( paths[path] !== newPaths[path] && changeEvents[path] ) {
+				key = newPaths[path];
+				changeEvents[path](key);
+			}
+		}
+
+		for ( path in events ) {
+			if ( hash === path ) {
+				events[path]();
+			}
 		}
 	}
 
-	setPaths();
 	window.addEventListener('hashchange', function() {
-		setPaths();
+
+		if ( !window.location.hash ) window.location.hash = '#/';
+
 		runEvents();
+		// finally update with new paths
+		paths = setPaths();
 	});
 
-	return {
+	var router = {
 		change: change,
+		when: when,
 		set: set,
 		setAll: setAll,
 		get: get
 	};
+
+	return router;
 };
 
 module.exports = Router;
@@ -849,7 +896,7 @@ function scene(container, router) {
 			data.user = user;
 			data.zone = zone;
 
-			var dataRef = new Firebase(CONFIG.dataRef + '/users/google:' + data.user + '/' + data.zone);
+			var dataRef = new Firebase(CONFIG.dataRef + '/users/' + data.user + '/' + data.zone);
 			voxels = dataRef.child('voxels');
 
 			clearAll();
@@ -1010,7 +1057,8 @@ module.exports = function random(item) {
 	}
 };
 },{}],15:[function(require,module,exports){
-var Firebase = require('firebase'),
+var CONFIG = require('./config.js'),
+	Firebase = require('firebase'),
 	THREE = require('three.js'),
 	T = require('./T.js'),
 	$ = require('zepto-browserify').$,
@@ -1028,6 +1076,21 @@ var views = {
 
 		var img = node('img', '', '', container);
 		img.attr('src', 'http://i.imgur.com/czmQqcy.gif');
+
+		var welcome = node('div', '<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p><p>Check out some zones:</p>', '', container);
+
+		var zones = new Firebase(CONFIG.dataRef),
+			zonesList = node('ul', '', '', container);
+		zones.on('value', function(snapshot) {
+			var users = snapshot.val().users,
+				user,
+				zone;
+			for ( user in users ) {
+				for ( zone in users[user] ) {
+					zonesList.append('<li><a href="/#/user/' + user + '/zone/' + zone + '">' + users[user][zone].name + '</a></li>');
+				}
+			}
+		});
 	},
 	"scene": function(container, router) {
 		var scene = require('./scene.js')(container, router);
@@ -1046,14 +1109,15 @@ module.exports = function(container) {
 			}
 
 			// clear container
-			container.html('').css({});
+			container.html('')
+			container.css('padding', 0);
 
 			// render view
 			return views[which].apply(null, [container].concat([].slice.apply(arguments).slice(1)));
 		}
 	};
 };
-},{"./T.js":1,"./scene.js":9,"./utils/node.js":13,"firebase":16,"three.js":19,"zepto-browserify":21}],16:[function(require,module,exports){
+},{"./T.js":1,"./config.js":5,"./scene.js":9,"./utils/node.js":13,"firebase":16,"three.js":19,"zepto-browserify":21}],16:[function(require,module,exports){
 /*! @license Firebase v2.3.0
     License: https://www.firebase.com/terms/terms-of-service.html */
 (function() {var g,aa=this;function n(a){return void 0!==a}function ba(){}function ca(a){a.ub=function(){return a.uf?a.uf:a.uf=new a}}
