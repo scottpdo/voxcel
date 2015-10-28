@@ -50,8 +50,7 @@ module.exports = function(container) {
 			}
 
 			// clear container
-			container.html('')
-			container.css('padding', 0);
+			container.html('').css('padding', 0);
 
 			// render view
 			return views[which].apply(null, [container].concat([].slice.apply(arguments).slice(1)));

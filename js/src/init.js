@@ -24,6 +24,7 @@ router.when('/', function() {
 });
 
 router.change('zone', function(id) {
+    console.log('changing zone', scene);
     if ( !scene ) {
         scene = view.show('scene', router);
     }

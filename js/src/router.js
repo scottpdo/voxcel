@@ -42,7 +42,7 @@ var Router = function() {
 	function setAll(obj) {
 		var hash = '/';
 		for ( var key in obj ) {
-			hash += key + '/' + obj[key];
+			hash += key + '/' + obj[key] + '/';
 		}
 		window.location.hash = hash;
 		return router;

@@ -196,6 +196,9 @@ function setVars(_router, data, _scene) {
 
 function setupUI(container, router, data) {
 
+    var home = node('a', 'Home', '', container);
+    home.attr('href', '#/');
+
     var photo = node('div', '', 'photo', container);
     photo.css('background-image', 'url(' + data.photo + ')');
 
@@ -236,7 +239,10 @@ function setupUI(container, router, data) {
                 $(this).removeClass('active');
             });
             target.addClass('active');
-            router.set('zone', target.attr('data-id'));
+            router.setAll({
+                user: userId,
+                zone: target.attr('data-id')
+            });
         }
     });
 
@@ -244,8 +250,6 @@ function setupUI(container, router, data) {
         
         var li = node('li', snapshot.val().name);
         li.attr('data-id', snapshot.key());
-
-        console.log(snapshot.val().name, snapshot.key(), router.get('zone'));
 
         if ( snapshot.key() === router.get('zone') ) {
             li.addClass('active');
@@ -499,6 +503,7 @@ router.when('/', function() {
 });
 
 router.change('zone', function(id) {
+    console.log('changing zone', scene);
     if ( !scene ) {
         scene = view.show('scene', router);
     }
@@ -760,7 +765,7 @@ var Router = function() {
 	function setAll(obj) {
 		var hash = '/';
 		for ( var key in obj ) {
-			hash += key + '/' + obj[key];
+			hash += key + '/' + obj[key] + '/';
 		}
 		window.location.hash = hash;
 		return router;
@@ -1109,8 +1114,7 @@ module.exports = function(container) {
 			}
 
 			// clear container
-			container.html('')
-			container.css('padding', 0);
+			container.html('').css('padding', 0);
 
 			// render view
 			return views[which].apply(null, [container].concat([].slice.apply(arguments).slice(1)));
