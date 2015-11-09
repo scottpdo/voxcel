@@ -1,4 +1,4 @@
-module.exports = function auth(ref) {
+module.exports = function AuthManager(ref) {
 
     var user = false;
 
