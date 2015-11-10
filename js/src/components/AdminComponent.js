@@ -1,13 +1,8 @@
-import CONFIG from '../config';
 import React from 'react';
-import Firebase from 'firebase';
-import AuthManager from '../auth';
 
 import LoginButton from './LoginButton';
 import UserInfo from './UserInfo';
 import HelperText from './HelperText';
-
-let auth = AuthManager(new Firebase(CONFIG.dataRef));
 
 class AdminComponent extends React.Component {
 	
@@ -16,7 +11,7 @@ class AdminComponent extends React.Component {
 		super()
 
 		this._login = (which) => {
-			auth.login({
+			this.props.auth.login({
 				error: () => {
 					console.warn('There was an error logging in.');
 				}
@@ -27,9 +22,9 @@ class AdminComponent extends React.Component {
     render() {
         return (
             <div className="h100">
-                <LoginButton auth={auth} onLogin={this._login} />
-                <UserInfo auth={auth} onLogin={this._login} />
-                <HelperText />
+                <LoginButton auth={this.props.auth} onLogin={this._login} />
+                <UserInfo auth={this.props.auth} />
+                <HelperText auth={this.props.auth} />
             </div>
         );
     }

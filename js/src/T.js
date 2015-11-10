@@ -1,12 +1,11 @@
 var THREE = require('three.js');
 
-var T = function(id) {
+var T = function(canvas) {
 
-    var container = document.getElementById(id),
-        scene, camera, renderer;
+    var scene, camera, renderer;
 
-    var WIDTH = container.clientWidth,
-        HEIGHT = container.clientHeight,
+    var WIDTH = canvas.width,
+        HEIGHT = canvas.height,
         VIEW_ANGLE = 45,
         ASPECT = WIDTH / HEIGHT,
         NEAR = 0.1,
@@ -14,7 +13,8 @@ var T = function(id) {
 
     renderer = new THREE.WebGLRenderer({
         antialias: true,
-        preserveDrawingBuffer: true
+        preserveDrawingBuffer: true,
+        canvas: canvas
     });
     renderer.shadowMap.enabled = true;
 
@@ -29,16 +29,11 @@ var T = function(id) {
     scene.add(camera);
 
     renderer.setSize(WIDTH, HEIGHT);
-    if ( id ) {
-        document.getElementById(id).appendChild(renderer.domElement);
-    } else {
-        document.body.appendChild(renderer.domElement);
-    }
 
     this.container = {
-        el: container,
-        width: function() { return container.clientWidth; },
-        height: function() { return container.clientHeight; }
+        el: canvas,
+        width: function() { return canvas.width; },
+        height: function() { return canvas.height; }
     };
 
     this.scene = scene;

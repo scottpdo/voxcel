@@ -7,7 +7,7 @@ class HelperText extends React.Component {
         
         let text = '<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p><p><b>Right click and drag</b> to rotate the camera.</p><p><b>Left click and drag</b> to pan the camera.</p>';
         
-        if ( !auth.getUser() ) {
+        if ( !this.props.auth.getUser() ) {
             text += '<p>Once you log in, you can create zones of your own!</p>';
         } else {
             text += '<p><b>Click</b> to create a new block.';
@@ -29,7 +29,7 @@ class HelperText extends React.Component {
     render() {
         return (
             <div className="help">
-                <span onClick={this._showHelperText}>?</span>
+                <span onClick={this._showHelperText.bind(this)}>?</span>
             </div>
         );
     }
