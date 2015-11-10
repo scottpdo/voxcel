@@ -23,7 +23,11 @@ body {
     height: 100%;
 }
 
-$admin_width: 140px;
+p:empty {
+    display: none;
+}
+
+$admin_width: 160px;
 
 #container {
     position: absolute;
