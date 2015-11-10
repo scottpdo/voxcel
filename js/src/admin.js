@@ -30,6 +30,9 @@ function setVars(_router, data, _scene) {
 
 function setupUI(container, router, data) {
 
+    var home = node('a', 'Home', '', container);
+    home.attr('href', '#/');
+
     var photo = node('div', '', 'photo', container);
     photo.css('background-image', 'url(' + data.photo + ')');
 
@@ -70,7 +73,10 @@ function setupUI(container, router, data) {
                 $(this).removeClass('active');
             });
             target.addClass('active');
-            router.set('zone', target.attr('data-id'));
+            router.setAll({
+                user: userId,
+                zone: target.attr('data-id')
+            });
         }
     });
 
@@ -78,8 +84,6 @@ function setupUI(container, router, data) {
         
         var li = node('li', snapshot.val().name);
         li.attr('data-id', snapshot.key());
-
-        console.log(snapshot.val().name, snapshot.key(), router.get('zone'));
 
         if ( snapshot.key() === router.get('zone') ) {
             li.addClass('active');
