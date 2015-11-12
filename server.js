@@ -1,10 +1,8 @@
-"use strict";
-
-const express = require('express'),
+var express = require('express'),
     path = require('path'),
     PORT = process.env.PORT || 8000;
 
-let app = express();
+var app = express();
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -12,11 +10,11 @@ app.set('view engine', 'ejs');
 app.use( '/js', express.static('js') );
 app.use( '/css', express.static('css') );
 
-app.get('/', (req, res) => {
+app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.use((req, res) => {
+app.use(function(req, res) {
     res.status(404).send('Page not found');
 });
 
