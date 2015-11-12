@@ -1,11 +1,11 @@
-var $ = require('zepto-browserify').$;
+import { $ } from 'zepto-browserify';
 
-module.exports = function node(tag, html, classes, container) {
-    var node = $('<' + tag + '>');
+let node = (tag, html, classes, container) => {
+    let node = $('<' + tag + '>');
     if ( html ) node.html(html);
 
     if ( classes ) {
-        classes.split(' ').forEach(function(c) {
+        classes.split(' ').forEach(c => {
             node.addClass(c);
         });
     }
@@ -14,3 +14,5 @@ module.exports = function node(tag, html, classes, container) {
 
     return node;
 };
+
+export default node;

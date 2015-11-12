@@ -1,5 +1,5 @@
-module.exports = function clamp(val, min, max) {
-	if ( val < min ) return min;
-	if ( val > max ) return max;
-	return val;
+let clamp = (val, min, max) => {
+	return Math.min(Math.max(val, min), max);
 };
+
+export default clamp;

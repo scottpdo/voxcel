@@ -15,12 +15,21 @@ class UserInfo extends React.Component {
 	}
 
 	componentDidMount() {
+       
         this.props.auth.on('login', (user) => {
             this.setState({
                 loggedIn: true,
                 photo: user.photo,
                 name: user.name
             });
+        });
+
+        this.props.auth.on('logout', () => {
+        	this.setState({
+        		loggedIn: false,
+        		photo: null,
+        		name: null
+        	});
         });
     }
 

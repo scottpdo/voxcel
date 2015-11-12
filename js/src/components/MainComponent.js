@@ -10,11 +10,17 @@ class Main extends React.Component {
 		super();
 	}
 
+	componentDidMount() {
+		
+	}
+
 	render() {
+
 		let styles = {
 			width: '100%',
 			height: '100%'
 		}
+		
 		return (
 			<div style={styles}>
 				<ViewComponent auth={this.props.auth} />

@@ -12,40 +12,30 @@ class LoginButton extends React.Component {
             loggedIn: false
         };
 
-        this._clearAlert = () => {
+        let success = () => {
             this.setState({
-                alert: ''
-            });
-        };
-
-        this._success = () => {
-            this.setState({
-                alert: 'Success!',
                 loggedIn: true
             });
-            setTimeout(this._clearAlert, 2000);
-        };
-
-        this._error = () => {
-            this.setState({
-                alert: 'There was a problem logging in. Try again?'
-            });
-            setTimeout(this._clearAlert, 2000);
         };
 
         this._login = () => {
-            let auth = this.props.auth;
-            auth.login({
-                success: this._success,
-                error: this._error
+            this.props.auth.login({
+                success
             });
         };
     }
 
     componentDidMount() {
+        
         this.props.auth.on('login', () => {
             this.setState({
                 loggedIn: true
+            });
+        });
+        
+        this.props.auth.on('logout', () => {
+            this.setState({
+                loggedIn: false
             });
         });
     }
@@ -56,12 +46,7 @@ class LoginButton extends React.Component {
             display: this.state.loggedIn ? 'none' : 'block'
         };
 
-        return (
-            <div>
-                <button className="login" id="login" onClick={this.props.onLogin} style={styles}>Log In</button>
-                <p>{this.state.alert}</p>
-            </div>
-        );
+        return <button className="login" id="login" onClick={this.props.onLogin} style={styles}>Log In</button>;
     }
 }
 
