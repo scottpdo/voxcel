@@ -18,7 +18,7 @@ class AdminComponent extends React.Component {
                 <LoginButton auth={this.props.auth} onLogin={this.props.auth.login} />
                 <LogoutButton auth={this.props.auth} onLogout={this.props.auth.logout} />
                 <UserInfo auth={this.props.auth} />
-                <UserZones auth={this.props.auth} onChooseZone={this.props.onChooseZone} />
+                <UserZones auth={this.props.auth} onChooseZone={this.props.onChooseZone} onDeleteZone={this.props.onDeleteZone} />
                 <HelperText auth={this.props.auth} />
             </div>
         );

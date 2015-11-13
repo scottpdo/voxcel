@@ -6,16 +6,22 @@ import Stage from './Scene/Stage';
 import Model from './Scene/Model';
 import Voxelizer from './Scene/Voxelizer';
 import { $ } from 'zepto-browserify';
+import random from '../utils/random';
 
 class SceneComponent extends React.Component {
 
 	constructor() {
 		super();
 
+		let Scene = new THREE.Scene();
+
 		this.state = {
 			active: false,
-			scene: null,
-			data: null
+			scene: new THREE.Scene(),
+			sceneIsStaged: false,
+			data: null,
+			color: null,
+			keysDown: []
 		};
 	}
 
@@ -25,9 +31,7 @@ class SceneComponent extends React.Component {
 		canvas.width = canvas.parentNode.clientWidth;
 		canvas.height = canvas.parentNode.clientHeight;
 
-		let Scene = new THREE.Scene();
-		Scene.objects = [];
-		this.setState({ scene: Scene });
+		let Scene = this.state.scene;
 
 		// prepare background elements, lighting, etc.
 		Stage(Scene);
@@ -38,15 +42,17 @@ class SceneComponent extends React.Component {
 			Scene.setTime(+this.refs.timeRange.value);
 			Scene.setTime(+this.refs.timeRange.value);
 		});
+
+		let colorPicker = $(this.refs.colorPicker);
+		colorPicker.on('change', () => {
+			this.setState({
+				color: colorPicker.val()
+			});
+		});
 		
 		let data = this.update.call(this, userId, zone);
-		this.setState({ data });
 
 		let voxelizer = Voxelizer(Scene);
-
-		this.setState({
-			active: true
-		});
 		
 		let Renderer = new THREE.WebGLRenderer({
 			antialias: true,
@@ -76,18 +82,34 @@ class SceneComponent extends React.Component {
 
 		Scene.add(rolloverMesh);
 
+		let t = 0;
+
 		let _render = () => {
 			
 			Renderer.render(Scene, Camera);
 			Raycaster.setFromCamera( Mouse, Camera );
 			
 			if ( this.state.active ) window.requestAnimationFrame(_render);
+			t++;
 		};
 
-		_render();
-		setTimeout(() => {
-			Renderer.setSize(canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
-		}, 1);
+		this._onKeyDown = (e) => {
+			this.state.keysDown.push(e.keyCode);
+		};
+
+		this._onKeyUp = (e) => {
+			if ( this.state.keysDown.indexOf(e.keyCode) > -1 ) {
+				this.state.keysDown.splice(this.state.keysDown.indexOf(e.keyCode), 1);
+			}
+		};
+
+		let isKeyDown = (code) => {
+			return () => {
+				return this.state.keysDown.indexOf(code) > -1;
+			}
+		};
+
+		let isShiftDown = isKeyDown.call(this, 16);
 
 		this._onMouseMove = (e) => {
 
@@ -110,7 +132,7 @@ class SceneComponent extends React.Component {
 	            }
 	        });
 
-	        if ( closestObj ) {
+	        if ( closestObj && !isShiftDown() ) {
 	        	rolloverMesh.visible = true;
 	        	rolloverMesh.position.copy( closestObj.point ).add( closestObj.face.normal );
 	            rolloverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
@@ -149,14 +171,30 @@ class SceneComponent extends React.Component {
 		        });
 
 		        if ( closestObj ) {
-		        	/* voxelizer.removeVoxel(closestObj.object, (id) => {
-			        	data.child(id).set(null);
-			        }); */
-					let position = new THREE.Vector3();
-				    position.copy( closestObj.point ).add( closestObj.face.normal );
-				    position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-				    let id = [position.x, position.y, position.z].join(',');
-					data.child(id).set('#999');
+
+		        	// if shift is not down, add a voxel
+					if ( !isShiftDown() ) {
+
+						let position = new THREE.Vector3();
+					    position.copy( closestObj.point ).add( closestObj.face.normal );
+					    position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+					    if ( position.y < 0 ) position.y += 50;
+					    
+					    let id = [position.x, position.y, position.z].join(',');
+
+					    let hex = '56789abcdef',
+					    	hexVal = random(hex),
+					    	color = '#' + hexVal + hexVal + hexVal;
+
+						this.state.data.child(id).set(this.state.color || color);
+
+					// if shift is down, remove a voxel
+					} else {
+
+						voxelizer.removeVoxel(closestObj.object, (id) => {
+				        	this.state.data.child(id).set(null);
+				        });
+					}
 		        }
 			}
 		};
@@ -169,54 +207,70 @@ class SceneComponent extends React.Component {
 			Renderer.setSize(canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
 		};
 
+		// Go go go!
+		this.setState({
+			active: true,
+			sceneIsStaged: true
+		}, () => {
+			this._onResize();
+			_render.call(this);
+		});
+
 		$(canvas)
-			.on('mousemove', this._onMouseMove)
-			.on('mousedown', this._onMouseDown)
-			.on('mouseup', this._onMouseUp);
-		window.addEventListener('resize', this._onResize);
+			.on('mousemove', this._onMouseMove.bind(this))
+			.on('mousedown', this._onMouseDown.bind(this))
+			.on('mouseup', this._onMouseUp.bind(this));
+		document.addEventListener('keydown', this._onKeyDown.bind(this));
+		document.addEventListener('keyup', this._onKeyUp.bind(this));
+		window.addEventListener('resize', this._onResize.bind(this));
 
 	}
 
 	destroy() {
 
-		let canvas = this.refs.canvas;
+		if ( this.state.data ) this.state.data.off('child_added');
 
 		this.setState({
-			active: false
+			active: false,
+			sceneIsStaged: false,
+			scene: null,
+			color: null,
+			data: null
 		});
 
 		$(canvas)
-			.off('mousemove', this._onMouseMove)
-			.off('mousedown', this._onMouseDown)
-			.off('mouseup', this._onMouseUp);
-		window.removeEventListener('resize', this._onResize);
+			.off('mousemove', this._onMouseMove.bind(this))
+			.off('mousedown', this._onMouseDown.bind(this))
+			.off('mouseup', this._onMouseUp.bind(this));
+		document.removeEventListener('keydown', this._onKeyDown.bind(this));
+		document.removeEventListener('keyup', this._onKeyUp.bind(this));
+		window.removeEventListener('resize', this._onResize.bind(this));
 	}
 
-	clearAll(Scene) {
-		if ( Scene && Scene.objects ) {
-			// don't remove ground plane
-			for ( let i = 1; i < Scene.objects.length; i++ ) {
-		        Scene.remove(Scene.objects[i]);
-		    }
+	clearAll() {
+		let Scene = this.state.scene;
+		// don't remove ground plane
+		for ( let i = 1; i < Scene.objects.length; i++ ) {
+	        Scene.remove(Scene.objects[i]);
+	    }
 
-		    Scene.objects = Scene.objects.slice(0, 1);
-		}
+	    Scene.objects = Scene.objects.slice(0, 1);
 	}
 
 	update(userId, zone) {
-
-		console.log('updating', this.state.scene);
 		
 		let data = Model(userId, zone);
 		let voxelizer = Voxelizer(this.state.scene);
 
 		if ( this.state.data ) {
-			console.log('removing old data listener');
-			// data.off('child_added');
-			// this.setState({ data });
+			this.state.data.off('child_added');
 		}
 
-		this.clearAll(this.state.scene);
+		this.setState({ data });
+
+		this.clearAll.call(this);
+
+		let numVoxels = 0;
 
 		data.on('child_added', function(s) {
 			voxelizer.renderVoxel(s.key(), s.val());
@@ -228,12 +282,14 @@ class SceneComponent extends React.Component {
 	componentDidMount() {
 
 		this.props.sceneManager.on('change', (userId, zone) => {
-			if ( !this.state.scene ) {
+			if ( !this.state.sceneIsStaged ) {
 				this.init.call(this, userId, zone);
 			} else {
 				this.update.call(this, userId, zone);
 			}
 		});
+
+		this.props.auth.on('logout', this.destroy.bind(this));
 	}
 
 	render() {
@@ -251,6 +307,7 @@ class SceneComponent extends React.Component {
 					<label htmlFor="time-range">Time:</label>
 					<input type="range" id="time-range" ref="timeRange" min="0" max="1" step="0.001" />
 				</div>
+				<input type="color" id="color-picker" ref="colorPicker" />
 			</div>
 		);
 	}

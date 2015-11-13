@@ -130,6 +130,21 @@ img {
 
         &:active, &:focus, &:hover {
             color: #555;
+
+            .delete { display: block; }
+        }
+
+        .delete {
+            border: 1px solid;
+            border-radius: 50%;
+            display: none;
+            height: 1em;
+            float: right;
+            width: 1em;
+
+            &:after {
+                content: "✖";
+            }
         }
     }
 
@@ -171,4 +186,14 @@ img {
         border: 0;
         width: 146px;
     }
+}
+
+#color-picker {
+    border: 0;
+    padding: 0;
+    height: 25px;
+    width: 25px;
+    position: fixed;
+    top: 1em;
+    right: 1em;
 }

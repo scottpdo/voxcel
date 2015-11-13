@@ -4,7 +4,7 @@ let random = (item) => {
 	if ( item.length ) {
 	    return item[Math.floor(Math.random() * item.length)];
 	} else if ( typeof item === 'object' ) {
-		var keys = Object.keys(item);
+		let keys = Object.keys(item);
 		return item[random(keys)];
 	}
 };

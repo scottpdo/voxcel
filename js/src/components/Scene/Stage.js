@@ -3,6 +3,8 @@ import _Lighting from './Lighting';
 
 let Stage = (Scene) => {
 
+	Scene.objects = [];
+
 	let groundPlane = new THREE.Mesh(
 		new THREE.PlaneGeometry(100000, 100000),
 		new THREE.MeshLambertMaterial({
@@ -26,7 +28,7 @@ let Stage = (Scene) => {
     Scene.objects.push(gridPlane);
 
 	let Lighting = _Lighting(Scene);
-	Lighting.setTime(0.25);
+	Lighting.setTime(0.333);
 
 	Scene.setTime = Lighting.setTime;
 	Scene.getTime = Lighting.getTime;
