@@ -6,15 +6,17 @@ import MainComponent from './components/MainComponent';
 import CONFIG from './config';
 import Firebase from 'firebase';
 import AuthManager from './auth';
+import SceneAdmin from './components/Scene/Admin';
 
 let auth = AuthManager(new Firebase(CONFIG.dataRef));
+let SceneManager = SceneAdmin();
 
 ReactDOM.render(
-    <AdminComponent auth={auth} />,
+    <AdminComponent auth={auth} onChooseZone={SceneManager.change} />,
     document.getElementById('admin')
 );
 
 ReactDOM.render(
-	<MainComponent auth={auth} />,
+	<MainComponent auth={auth} sceneManager={SceneManager} />,
 	document.getElementById('main')
 );
