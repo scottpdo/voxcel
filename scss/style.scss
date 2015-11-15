@@ -140,10 +140,16 @@ img {
             display: none;
             height: 1em;
             float: right;
+            text-align: center;
             width: 1em;
 
             &:after {
                 content: "✖";
+                font-size: 0.65em;
+                left: 0;
+                position: absolute;
+                top: 0;
+                width: 100%;
             }
         }
     }

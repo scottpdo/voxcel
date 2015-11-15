@@ -1,6 +1,8 @@
 import CONFIG from '../config';
 import React from 'react';
 import Firebase from 'firebase';
+import swal from 'sweetalert';
+import { Route, Link } from 'react-router';
 
 class UserZones extends React.Component {
 
@@ -55,20 +57,43 @@ class UserZones extends React.Component {
 		});
 	}
 
-	createZone(userId) {
+	createZone() {
 
-		// TODO: show swal to get name, add to Firebase
+		swal({
+            title: 'Name your zone!',
+            type: 'input',
+            animation: 'slide-from-top'
+        }, (inputValue) => {
 
-		// let zoneRef = new Firebase(CONFIG.dataRef + '/users/' + userId);
-		// zoneRef.child(zone).set(null);
+        	if ( inputValue ) {
+        	
+	        	let zoneRef = new Firebase(CONFIG.dataRef + '/users/' + this.state.userId);
+	            
+	            let path = zoneRef.push({
+	                name: inputValue,
+	                created_at: new Date().getTime()
+	            }).toString().split('/');
+
+	            let zoneId = path[path.length - 1];
+
+	            this.props.onChooseZone.call(null, this.state.userId, zoneId);
+	        }
+        });
 	}
 
-	deleteZone(userId, zone) {
+	deleteZone(zone, name, e) {
 
-		// TODO: show confirm before delete zone
+		e.stopPropagation();
 
-		let zoneRef = new Firebase(CONFIG.dataRef + '/users/' + userId);
-		zoneRef.child(zone).set(null);
+		swal({
+            title: 'Are you sure you want to delete ' + name + '?',
+            type: 'warning',
+            animation: 'slide-from-top',
+            showCancelButton: true
+        }, () => {
+        	let zoneRef = new Firebase(CONFIG.dataRef + '/users/' + this.state.userId);
+            zoneRef.child(zone).set(null);
+        });
 	}
 
 	render() {
@@ -79,9 +104,11 @@ class UserZones extends React.Component {
 
 		let zones = this.state.zones.map(v => {
 			return (
-				<li key={v.key} onClick={this.props.onChooseZone.bind(null, this.props.auth.getUser(), v.key)}>
-					{v.name}
-					<span className="delete" onClick={this.deleteZone.bind(null, this.props.auth.getUser('id'), v.key)}></span>
+				<li key={v.key} onClick={this.props.onChooseZone.bind(null, this.state.userId, v.key)}>
+					<a href={'/#/user/' + this.state.userId + '/zone/' + v.key + '/'}>
+						{v.name}
+					</a>
+					<span className="delete" onClick={this.deleteZone.bind(this, v.key, v.name)}></span>
 				</li>
 			);
 		});
@@ -92,7 +119,7 @@ class UserZones extends React.Component {
 					<li className="underline">Zones:</li>
 					{zones}
 				</ul>
-				<button onClick={this.createZone}>New Zone</button>
+				<button onClick={this.createZone.bind(this)}>New Zone</button>
 			</div>
 		);
 	}

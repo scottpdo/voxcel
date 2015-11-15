@@ -17,11 +17,14 @@ class SceneComponent extends React.Component {
 
 		this.state = {
 			active: false,
+			isAdmin: false,
 			scene: new THREE.Scene(),
 			sceneIsStaged: false,
 			data: null,
 			color: null,
-			keysDown: []
+			keysDown: [],
+			zone: null,
+			userId: null
 		};
 	}
 
@@ -95,6 +98,7 @@ class SceneComponent extends React.Component {
 
 		this._onKeyDown = (e) => {
 			this.state.keysDown.push(e.keyCode);
+			if ( isShiftDown() ) rolloverMesh.visible = false;
 		};
 
 		this._onKeyUp = (e) => {
@@ -132,7 +136,7 @@ class SceneComponent extends React.Component {
 	            }
 	        });
 
-	        if ( closestObj && !isShiftDown() ) {
+	        if ( this.state.isAdmin && closestObj && !isShiftDown() ) {
 	        	rolloverMesh.visible = true;
 	        	rolloverMesh.position.copy( closestObj.point ).add( closestObj.face.normal );
 	            rolloverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
@@ -170,7 +174,7 @@ class SceneComponent extends React.Component {
 		            }
 		        });
 
-		        if ( closestObj ) {
+		        if ( this.state.isAdmin && closestObj ) {
 
 		        	// if shift is not down, add a voxel
 					if ( !isShiftDown() ) {
@@ -264,9 +268,14 @@ class SceneComponent extends React.Component {
 
 		if ( this.state.data ) {
 			this.state.data.off('child_added');
+			this.state.data.off('child_removed');
 		}
 
-		this.setState({ data });
+		this.setState({ 
+			data,
+			zone,
+			userId
+		});
 
 		this.clearAll.call(this);
 
@@ -275,11 +284,36 @@ class SceneComponent extends React.Component {
 		data.on('child_added', function(s) {
 			voxelizer.renderVoxel(s.key(), s.val());
 		});
+
+		data.on('child_removed', function(s) {
+			let voxel = voxelizer.get(s.key());
+			voxel && voxelizer.removeVoxel(voxel);
+		});
 		
 		return data;
 	}
 
+	login(userId) {
+		this.setState({
+			isAdmin: this.props.auth.getUser() && this.props.auth.getUser('id') === userId
+		});
+	}
+
 	componentDidMount() {
+
+		let matchHash = () => {
+			let hash = window.location.hash;
+			let match = hash.match(/\/user\/(\d*)\/zone\/(.*)\//);
+			
+			if ( match ) {
+				let userId = match[1];
+				let zone = match[2];
+				this.init.call(this, userId, zone);
+			}
+		}
+
+		matchHash();
+		window.addEventListener('hashchange', matchHash.bind(this));
 
 		this.props.sceneManager.on('change', (userId, zone) => {
 			if ( !this.state.sceneIsStaged ) {
@@ -287,6 +321,10 @@ class SceneComponent extends React.Component {
 			} else {
 				this.update.call(this, userId, zone);
 			}
+		});
+
+		this.props.auth.on('login', (user) => {
+			this.state.active && this.login.call(this, user.id);	
 		});
 
 		this.props.auth.on('logout', this.destroy.bind(this));
@@ -299,6 +337,10 @@ class SceneComponent extends React.Component {
 			height: '100%',
 			width: '100%'
 		};
+
+		let controlStyle = {
+			display: this.state.isAdmin ? 'block' : 'none'
+		};
 		
 		return (
 			<div style={style}>
@@ -307,7 +349,9 @@ class SceneComponent extends React.Component {
 					<label htmlFor="time-range">Time:</label>
 					<input type="range" id="time-range" ref="timeRange" min="0" max="1" step="0.001" />
 				</div>
-				<input type="color" id="color-picker" ref="colorPicker" />
+				<div style={controlStyle}>
+					<input type="color" id="color-picker" ref="colorPicker" />
+				</div>
 			</div>
 		);
 	}

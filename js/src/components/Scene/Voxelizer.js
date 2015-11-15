@@ -2,6 +2,7 @@ import THREE from 'three.js';
 
 let Voxelizer = (Scene) => {
 
+	// render a voxel from its ID (x,y,z in space) and color
 	let renderVoxel = (id, color) => {
 
 		let voxel = new THREE.Mesh(
@@ -22,6 +23,8 @@ let Voxelizer = (Scene) => {
 		Scene.add(voxel);
 	};
 
+	// remove a voxel
+	// expects Three.js object
 	let removeVoxel = (voxel, cb) => {
 
 		let before = Scene.objects.slice(0, Scene.objects.indexOf(voxel)),
@@ -33,9 +36,22 @@ let Voxelizer = (Scene) => {
 		cb(voxel._id);
 	};
 
+	// get a voxel by its ID in O(n) time...
+	// TODO: implement a hash map to reduce time
+	let get = (id) => {
+		for ( let i = 0; i < Scene.objects.length; i++ ) {
+			let obj = Scene.objects[i];
+			if ( obj._id === id ) {
+				return obj;
+			}
+		}
+		return false;
+	};
+
 	return {
 		renderVoxel,
-		removeVoxel
+		removeVoxel,
+		get
 	};
 
 };

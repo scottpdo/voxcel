@@ -1,4 +1,6 @@
+import CONFIG from '../config';
 import React from 'react';
+import route from 'http-hash';
 
 class ViewComponent extends React.Component {
 	
@@ -6,36 +8,62 @@ class ViewComponent extends React.Component {
 
 		super();
 
-		this.state ={
-			loggedIn: false
+		this.state = {
+			visible: this.isVisible(),
+			zones: []
 		};
-
 	}
 
-	componentWillMount() {
+	isVisible() {
+		let hash = window.location.hash;
+		return hash.search(/\/user\/(\d*)\/zone\/(.*)\//) === -1;
+	}
 
-		this.props.auth.on('login', () => {
-			this.setState({
-				loggedIn: true
-			});
+	componentDidMount() {
+		
+		let zones = new Firebase(CONFIG.dataRef);
+		zones.on('child_added', (s) => {
+			let users = s.val();
+			for ( let user in users ) {
+				let zones = users[user];
+				for ( let zone in zones ) {
+					this.setState({
+						zones: this.state.zones.concat({
+							user,
+							id: zone,
+							name: zones[zone].name
+						})
+					});
+				}
+			}
 		});
 
-		this.props.auth.on('logout', () => {
+		window.addEventListener('hashchange', () => {
 			this.setState({
-				loggedIn: false
+				visible: this.isVisible()
 			});
 		});
-
 	}
 
 	render() {
 
 		let styles = {
-			display: this.state.loggedIn ? 'none' : 'block'
+			display: this.state.visible ? 'block' : 'none',
+			padding: '10px 20px'
 		};
 
+		let zones = this.state.zones.map(v => {
+			return <li key={v.id}><a href={'/#/user/' + v.user + '/zone/' + v.id + '/'}>{v.name}</a></li>;
+		});
+
 		return (
-			<div style={styles}>VIEW_COMPONENT</div>
+			<div style={styles}>
+				<h1>3d</h1>
+				<img src="http://i.imgur.com/czmQqcy.gif" />
+				<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p>
+				<p>Check out some zones:</p>
+				<ul>{zones}</ul>
+			</div>
 		);
 	}
 

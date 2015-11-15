@@ -12,7 +12,7 @@ let auth = AuthManager(new Firebase(CONFIG.dataRef));
 let SceneManager = SceneAdmin();
 
 ReactDOM.render(
-    <AdminComponent auth={auth} onChooseZone={SceneManager.change} onDeleteZone={SceneManager.deleteZone} />,
+    <AdminComponent auth={auth} onChooseZone={SceneManager.chooseZone} onDeleteZone={SceneManager.deleteZone} />,
     document.getElementById('admin')
 );
 

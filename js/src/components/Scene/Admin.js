@@ -13,15 +13,15 @@ let Admin = () => {
 			listeners[key].push(cb);
 		},
 
-		change(user, zone) {
+		chooseZone(userId, zone) {
 			listeners.change.forEach(cb => {
-				cb(user.id, zone);
+				cb(userId, zone);
 			});
 		},
 
-		deleteZone(user, zone) {
+		deleteZone(userId, zone) {
 			listeners.deleteZone.forEach(cb => {
-				cb(user.id, zone);
+				cb(userId, zone);
 			});
 		}
 	};
