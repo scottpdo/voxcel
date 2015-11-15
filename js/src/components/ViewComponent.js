@@ -60,7 +60,7 @@ class ViewComponent extends React.Component {
 			<div style={styles}>
 				<h1>3d</h1>
 				<img src="http://i.imgur.com/czmQqcy.gif" />
-				<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p>
+				<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scott Donaldson</a> using three.js, React, and Firebase.</p>
 				<p>Check out some zones:</p>
 				<ul>{zones}</ul>
 			</div>

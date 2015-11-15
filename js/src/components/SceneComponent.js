@@ -5,6 +5,7 @@ import _Camera from './Scene/Camera';
 import Stage from './Scene/Stage';
 import Model from './Scene/Model';
 import Voxelizer from './Scene/Voxelizer';
+import SceneControls from './Scene/SceneControls';
 import { $ } from 'zepto-browserify';
 import random from '../utils/random';
 
@@ -14,6 +15,7 @@ class SceneComponent extends React.Component {
 		super();
 
 		let Scene = new THREE.Scene();
+		let _this = this;
 
 		this.state = {
 			active: false,
@@ -25,6 +27,15 @@ class SceneComponent extends React.Component {
 			keysDown: [],
 			zone: null,
 			userId: null
+		};
+
+		this.controls = {
+			
+			changeColor() {
+				_this.setState({
+					color: this.refs.colorPicker.value
+				});
+			}
 		};
 	}
 
@@ -44,13 +55,6 @@ class SceneComponent extends React.Component {
 		timeRange.on('change input', () => {
 			Scene.setTime(+this.refs.timeRange.value);
 			Scene.setTime(+this.refs.timeRange.value);
-		});
-
-		let colorPicker = $(this.refs.colorPicker);
-		colorPicker.on('change', () => {
-			this.setState({
-				color: colorPicker.val()
-			});
 		});
 		
 		let data = this.update.call(this, userId, zone);
@@ -349,9 +353,7 @@ class SceneComponent extends React.Component {
 					<label htmlFor="time-range">Time:</label>
 					<input type="range" id="time-range" ref="timeRange" min="0" max="1" step="0.001" />
 				</div>
-				<div style={controlStyle}>
-					<input type="color" id="color-picker" ref="colorPicker" />
-				</div>
+				<SceneControls style={controlStyle} isAdmin={this.state.isAdmin} controls={this.controls} />
 			</div>
 		);
 	}
