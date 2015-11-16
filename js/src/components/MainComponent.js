@@ -19,7 +19,7 @@ class Main extends React.Component {
 		return (
 			<div style={styles}>
 				<ViewComponent auth={this.props.auth} />
-				<SceneComponent auth={this.props.auth} sceneManager={this.props.sceneManager} />
+				<SceneComponent auth={this.props.auth} sceneManager={this.props.sceneManager} viewer={this.props.viewer} />
 			</div>
 		);
 	}

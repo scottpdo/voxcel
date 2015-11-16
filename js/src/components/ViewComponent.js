@@ -21,20 +21,18 @@ class ViewComponent extends React.Component {
 
 	componentDidMount() {
 		
-		let zones = new Firebase(CONFIG.dataRef);
+		let zones = new Firebase(CONFIG.dataRef + '/users');
 		zones.on('child_added', (s) => {
-			let users = s.val();
-			for ( let user in users ) {
-				let zones = users[user];
-				for ( let zone in zones ) {
-					this.setState({
-						zones: this.state.zones.concat({
-							user,
-							id: zone,
-							name: zones[zone].name
-						})
-					});
-				}
+			let user = s.key();
+			let zones = s.val();
+			for ( let zone in zones ) {
+				this.setState({
+					zones: this.state.zones.concat({
+						user,
+						id: zone,
+						name: zones[zone].name
+					})
+				});
 			}
 		});
 

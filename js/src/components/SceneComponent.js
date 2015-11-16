@@ -1,3 +1,5 @@
+import CONFIG from '../config';
+import Firebase from 'firebase';
 import THREE from 'three.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -26,7 +28,8 @@ class SceneComponent extends React.Component {
 			color: null,
 			keysDown: [],
 			zone: null,
-			userId: null
+			userId: null,
+			viewers: 0
 		};
 
 		this.controls = {
@@ -246,6 +249,8 @@ class SceneComponent extends React.Component {
 			data: null
 		});
 
+		this.props.viewer.child('viewing').set(null);
+
 		$(canvas)
 			.off('mousemove', this._onMouseMove.bind(this))
 			.off('mousedown', this._onMouseDown.bind(this))
@@ -274,6 +279,10 @@ class SceneComponent extends React.Component {
 			this.state.data.off('child_added');
 			this.state.data.off('child_removed');
 		}
+
+		this.props.viewer.update({
+			viewing: zone
+		});
 
 		this.setState({ 
 			data,
@@ -345,6 +354,18 @@ class SceneComponent extends React.Component {
 		let controlStyle = {
 			display: this.state.isAdmin ? 'block' : 'none'
 		};
+
+		let viewers;
+
+		new Firebase(CONFIG.dataRef + '/viewers').on('value', (s) => {
+			viewers = 0;
+			for ( let viewer in s.val() ) {
+				console.log(s.val()[viewer].viewing, this.state.zone);
+				if ( s.val()[viewer].viewing === this.state.zone ) {
+					viewers++;
+				}
+			}
+		});
 		
 		return (
 			<div style={style}>
@@ -353,6 +374,7 @@ class SceneComponent extends React.Component {
 					<label htmlFor="time-range">Time:</label>
 					<input type="range" id="time-range" ref="timeRange" min="0" max="1" step="0.001" />
 				</div>
+				<div className="viewers">{viewers}</div>
 				<SceneControls style={controlStyle} isAdmin={this.state.isAdmin} controls={this.controls} />
 			</div>
 		);
