@@ -29,7 +29,7 @@ class SceneComponent extends React.Component {
 			keysDown: [],
 			zone: null,
 			userId: null,
-			viewers: 0
+			viewers: []
 		};
 
 		this.controls = {
@@ -261,6 +261,7 @@ class SceneComponent extends React.Component {
 	}
 
 	clearAll() {
+
 		let Scene = this.state.scene;
 		// don't remove ground plane
 		for ( let i = 1; i < Scene.objects.length; i++ ) {
@@ -307,8 +308,17 @@ class SceneComponent extends React.Component {
 	}
 
 	login(userId) {
+		
+		let isAdmin = () => {
+			return this.props.auth.getUser() && this.props.auth.getUser('id') === userId;
+		};
+		
+		this.props.viewer.update({
+			isAdmin: isAdmin.call(this)
+		});
+		
 		this.setState({
-			isAdmin: this.props.auth.getUser() && this.props.auth.getUser('id') === userId
+			isAdmin: isAdmin.call(this)
 		});
 	}
 
@@ -321,23 +331,44 @@ class SceneComponent extends React.Component {
 			if ( match ) {
 				let userId = match[1];
 				let zone = match[2];
-				this.init.call(this, userId, zone);
+				if ( !this.state.sceneIsStaged ) {
+					this.init.call(this, userId, zone);
+				} else {
+					this.update.call(this, userId, zone);
+				}
 			}
 		}
 
 		matchHash();
 		window.addEventListener('hashchange', matchHash.bind(this));
 
-		this.props.sceneManager.on('change', (userId, zone) => {
-			if ( !this.state.sceneIsStaged ) {
-				this.init.call(this, userId, zone);
-			} else {
-				this.update.call(this, userId, zone);
+		let viewersRef = new Firebase(CONFIG.dataRef + '/viewers');
+		let checkAndAddViewer = (viewer) => {
+			if ( this.state.viewers.indexOf(viewer) === -1 && viewer.viewing === this.state.zone && !viewer.isAdmin ) {
+				this.setState({
+					viewers: this.state.viewers.concat(viewer)
+				});
+			}
+		}
+
+		viewersRef.on('child_added', s => {
+			let viewer = s.key();
+			checkAndAddViewer.call(this, viewer);
+		});
+
+		viewersRef.on('value', s => {
+			this.state.viewers = [];
+			for ( let viewerObj in s.val() ) {
+				let viewer = s.val()[viewerObj];
+				checkAndAddViewer.call(this, viewer);
 			}
 		});
 
 		this.props.auth.on('login', (user) => {
-			this.state.active && this.login.call(this, user.id);	
+			if ( this.state.active ) {
+				this.login.call(this, user.id);
+				viewersRef.child
+			}
 		});
 
 		this.props.auth.on('logout', this.destroy.bind(this));
@@ -354,18 +385,6 @@ class SceneComponent extends React.Component {
 		let controlStyle = {
 			display: this.state.isAdmin ? 'block' : 'none'
 		};
-
-		let viewers;
-
-		new Firebase(CONFIG.dataRef + '/viewers').on('value', (s) => {
-			viewers = 0;
-			for ( let viewer in s.val() ) {
-				console.log(s.val()[viewer].viewing, this.state.zone);
-				if ( s.val()[viewer].viewing === this.state.zone ) {
-					viewers++;
-				}
-			}
-		});
 		
 		return (
 			<div style={style}>
@@ -374,7 +393,7 @@ class SceneComponent extends React.Component {
 					<label htmlFor="time-range">Time:</label>
 					<input type="range" id="time-range" ref="timeRange" min="0" max="1" step="0.001" />
 				</div>
-				<div className="viewers">{viewers}</div>
+				<div className="viewers">{this.state.viewers.length + ' viewer' + (this.state.viewers.length === 1 ? '' : 's')}</div>
 				<SceneControls style={controlStyle} isAdmin={this.state.isAdmin} controls={this.controls} />
 			</div>
 		);

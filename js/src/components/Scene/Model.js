@@ -33,6 +33,7 @@ let Model = (userId, zone) => {
 				callbacks[which].forEach(cb => {
 					voxels.off(which, cb);
 				});
+				callbacks[which] = [];
 			}
 		}
 	};
