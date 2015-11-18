@@ -223,16 +223,29 @@ img {
     .messages-container {
         height: calc(100% - 28px);
         overflow-y: scroll;
-        padding: 2px;
     }
 
     .messages {
+
     }
 
     .message {
         border-bottom: 1px solid #ddd;
-        padding: 2px 0;
+        padding: 2px;
         &:last-child { border: 0; }
+    }
+
+    .messages-more {
+        background: #fff;
+        border: 1px solid;
+        border-radius: 4px;
+        box-shadow: 0 0 4px #999;
+        position: absolute;
+        bottom: 40px;
+        left: 10px;
+        padding: 4px;
+        text-align: center;
+        width: calc(100% - 35px);
     }
 
     .user {

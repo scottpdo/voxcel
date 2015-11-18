@@ -1,6 +1,7 @@
 import CONFIG from '../../config';
 import React from 'react';
 import Firebase from 'firebase';
+import { $ } from 'zepto-browserify';
 
 class ChatComponent extends React.Component {
 
@@ -9,7 +10,8 @@ class ChatComponent extends React.Component {
 
 		this.state = {
 			loggedIn: false,
-			messages: []
+			messages: [],
+			scrolledUp: false
 		};
 	}
 
@@ -73,10 +75,25 @@ class ChatComponent extends React.Component {
 		return true;
 	}
 
+	componentDidUpdate() {
+		// if user has not scrolled up in chat,
+		// keep it at bottom when updating
+		if ( !this.state.scrolledUp ) {
+			this.refs.messagesContainer.scrollTop =
+				this.refs.messages.clientHeight > this.refs.messagesContainer.clientHeight ?
+				this.refs.messages.clientHeight - this.refs.messagesContainer.clientHeight :
+				0;
+		}
+	}
+
 	render() {
 		
 		let style = {
 			display: this.state.loggedIn ? 'block' : 'none'
+		};
+
+		let scrolledUpStyle = {
+			display: this.state.scrolledUp ? 'block' : 'none'
 		};
 
 		let messages = this.state.messages.map((message) => {
@@ -88,12 +105,31 @@ class ChatComponent extends React.Component {
 			);
 		});
 
+		let scrollMessages = () => {
+			
+			let scrolledUp = false;
+			
+			if ( this.refs.messages.clientHeight > this.refs.messagesContainer.clientHeight ) {
+				scrolledUp = 
+					this.refs.messages.clientHeight - this.refs.messagesContainer.clientHeight - this.refs.messagesContainer.scrollTop < 5 ?
+					false :
+					true;
+			}
+			
+			this.setState({
+				scrolledUp
+			});
+		};
+
 		return (
 			<div style={style} id="chat">
-				<div className="messages-container" ref="messages-container">
-					<div className="messages">
+				<div className="messages-container" ref="messagesContainer" onScroll={scrollMessages}>
+					<div className="messages" ref="messages">
 						{messages}
 					</div>
+				</div>
+				<div className="messages-more" style={scrolledUpStyle}>
+					More messages &darr;
 				</div>
 				<form onSubmit={this.submitMessage.bind(this)}>
 					<input type="text" ref="message" placeholder="Your message..." />
