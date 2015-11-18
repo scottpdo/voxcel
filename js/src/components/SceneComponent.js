@@ -29,7 +29,7 @@ class SceneComponent extends React.Component {
 			color: null,
 			keysDown: [],
 			zone: null,
-			userId: null,
+			userId: null, // the zone creator, NOT the current user
 			viewers: []
 		};
 
@@ -290,7 +290,7 @@ class SceneComponent extends React.Component {
 			data,
 			zone,
 			userId
-		});
+		}, this.checkAdmin.bind(this));
 
 		this.clearAll.call(this);
 
@@ -308,10 +308,10 @@ class SceneComponent extends React.Component {
 		return data;
 	}
 
-	login(userId) {
+	checkAdmin() {
 		
 		let isAdmin = () => {
-			return this.props.auth.getUser() && this.props.auth.getUser('id') === userId;
+			return this.props.auth.getUser() && this.state.userId === this.props.auth.getUser('id');
 		};
 		
 		this.props.viewer.update({
@@ -367,7 +367,7 @@ class SceneComponent extends React.Component {
 
 		this.props.auth.on('login', (user) => {
 			if ( this.state.active ) {
-				this.login.call(this, user.id);
+				this.checkAdmin.call(this, user.id);
 			}
 		});
 
