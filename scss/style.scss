@@ -13,6 +13,7 @@
 body {
     color: #575757;
     font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    overflow: hidden;
 }
 
 .block { display: block; }
@@ -201,11 +202,47 @@ img {
     width: 25px;
     position: fixed;
     top: 1em;
-    right: 1em;
+    left: calc(#{$admin_width} + 1em);
 }
 
 .viewers {
     position: fixed;
     bottom: 1.5em;
-    right: 1em;
+    left: calc(#{$admin_width} + 1em);
+}
+
+#chat {
+    background: #fff;
+    font-size: 0.8em;
+    position: fixed;
+    height: 100%;
+    right: 0;
+    top: 0;
+    width: 220px;
+
+    .messages-container {
+        height: calc(100% - 28px);
+        overflow-y: scroll;
+        padding: 2px;
+    }
+
+    .messages {
+    }
+
+    .message {
+        border-bottom: 1px solid #ddd;
+        padding: 2px 0;
+        &:last-child { border: 0; }
+    }
+
+    .user {
+        font-weight: bold;
+    }
+
+    form {
+        bottom: 0;
+        left: 0;
+        position: absolute;
+        width: 100%;
+    }
 }

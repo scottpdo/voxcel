@@ -8,6 +8,7 @@ import Stage from './Scene/Stage';
 import Model from './Scene/Model';
 import Voxelizer from './Scene/Voxelizer';
 import SceneControls from './Scene/SceneControls';
+import ChatComponent from './Scene/ChatComponent';
 import { $ } from 'zepto-browserify';
 import random from '../utils/random';
 
@@ -367,7 +368,6 @@ class SceneComponent extends React.Component {
 		this.props.auth.on('login', (user) => {
 			if ( this.state.active ) {
 				this.login.call(this, user.id);
-				viewersRef.child
 			}
 		});
 
@@ -382,8 +382,12 @@ class SceneComponent extends React.Component {
 			width: '100%'
 		};
 
-		let controlStyle = {
+		let showAdmin = {
 			display: this.state.isAdmin ? 'block' : 'none'
+		};
+
+		let hideAdmin = {
+			display: this.state.isAdmin ? 'none' : 'block'
 		};
 		
 		return (
@@ -393,8 +397,12 @@ class SceneComponent extends React.Component {
 					<label htmlFor="time-range">Time:</label>
 					<input type="range" id="time-range" ref="timeRange" min="0" max="1" step="0.001" />
 				</div>
-				<div className="viewers">{this.state.viewers.length + ' viewer' + (this.state.viewers.length === 1 ? '' : 's')}</div>
-				<SceneControls style={controlStyle} isAdmin={this.state.isAdmin} controls={this.controls} />
+				<div className="viewers">{this.state.viewers.length + ' viewer' + (this.state.viewers.length === 1 ? '' : 's')}
+					<br style={hideAdmin} />
+					<small style={hideAdmin}>Log in to chat</small>
+				</div>
+				<SceneControls style={showAdmin} isAdmin={this.state.isAdmin} controls={this.controls} />
+				<ChatComponent auth={this.props.auth} userId={this.state.userId} zone={this.state.zone} />
 			</div>
 		);
 	}
