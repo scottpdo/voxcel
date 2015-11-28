@@ -45,6 +45,8 @@ class ChatComponent extends React.Component {
 				this.refs.message.value = '';
 			}
 		};
+
+		this.props.chatManager.on('clickScene', this.refs.message.blur);
 	}
 
 	componentWillReceiveProps() {
@@ -84,6 +86,14 @@ class ChatComponent extends React.Component {
 				this.refs.messages.clientHeight - this.refs.messagesContainer.clientHeight :
 				0;
 		}
+	}
+
+	chatFocus() {
+		this.props.onChatChange.call(this, true);
+	}
+
+	chatBlur() {
+		this.props.onChatChange.call(this, false);
 	}
 
 	render() {
@@ -132,7 +142,7 @@ class ChatComponent extends React.Component {
 					More messages &darr;
 				</div>
 				<form onSubmit={this.submitMessage.bind(this)}>
-					<input type="text" ref="message" placeholder="Your message..." />
+					<input onFocus={this.chatFocus.bind(this)} onBlur={this.chatBlur.bind(this)} type="text" ref="message" placeholder="Your message..." />
 				</form>
 			</div>
 		);

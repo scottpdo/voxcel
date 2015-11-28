@@ -23,6 +23,7 @@ class SceneComponent extends React.Component {
 		this.state = {
 			active: false,
 			isAdmin: false,
+			isChatting: false,
 			scene: new THREE.Scene(),
 			sceneIsStaged: false,
 			data: null,
@@ -41,6 +42,31 @@ class SceneComponent extends React.Component {
 				});
 			}
 		};
+
+		let chatManager = () => {
+
+			let events = [];
+
+			return {
+				on(which, cb) {
+					if ( events[which] ) {
+						events[which].push(cb);
+					} else {
+						events[which] = [cb];
+					}
+				},
+
+				trigger(which) {
+					if ( events[which] ) {
+						events[which].forEach(cb => {
+							cb();
+						});
+					}
+				}
+			}
+		};
+
+		this.chatManager = chatManager();
 	}
 
 	init(userId, zone) {
@@ -109,7 +135,40 @@ class SceneComponent extends React.Component {
 			if ( isShiftDown() ) rolloverMesh.visible = false;
 		};
 
+		let takeSnapshot = () => {
+			$(this.refs.canvas).addClass('faded');
+
+			$.ajax({
+				url: CONFIG.imgurEndpoint,
+				type: 'POST',
+				headers: {
+					Authorization: 'Client-ID ' + CONFIG.imgurId,
+					Accept: 'application/json'
+				},
+				data: {
+					image: this.refs.canvas.toDataURL().split(',')[1],
+					type: 'base64'
+				},
+				success(result) {
+					let id = result.data.id;
+					console.log('success', 'https://imgur.com/gallery/' + id);
+				},
+				error(err) {
+					console.log('error uploading', err);
+				}
+			});
+
+			setTimeout(() => {
+				$(this.refs.canvas).removeClass('faded');
+			}, 350);
+		};
+
 		this._onKeyUp = (e) => {
+			
+			if ( isEnterDown() && isShiftDown() ) {
+				takeSnapshot.call(this);
+			}
+
 			if ( this.state.keysDown.indexOf(e.keyCode) > -1 ) {
 				this.state.keysDown.splice(this.state.keysDown.indexOf(e.keyCode), 1);
 			}
@@ -121,6 +180,7 @@ class SceneComponent extends React.Component {
 			}
 		};
 
+		let isEnterDown = isKeyDown.call(this, 13);
 		let isShiftDown = isKeyDown.call(this, 16);
 
 		this._onMouseMove = (e) => {
@@ -235,7 +295,6 @@ class SceneComponent extends React.Component {
 		document.addEventListener('keydown', this._onKeyDown.bind(this));
 		document.addEventListener('keyup', this._onKeyUp.bind(this));
 		window.addEventListener('resize', this._onResize.bind(this));
-
 	}
 
 	destroy() {
@@ -323,6 +382,13 @@ class SceneComponent extends React.Component {
 		});
 	}
 
+	isChatting(chatting) {
+		console.log("user is chatting", chatting);
+		this.setState({
+			isChatting: chatting
+		});
+	}
+
 	componentDidMount() {
 
 		let matchHash = () => {
@@ -392,8 +458,8 @@ class SceneComponent extends React.Component {
 		
 		return (
 			<div style={style}>
-				<canvas ref="canvas" style={style}></canvas>
-				<div className="time-range-container">
+				<canvas ref="canvas" style={style} onClick={this.chatManager.trigger.bind(null, 'clickScene')}></canvas>
+				<div className="time-range-container" onClick={this.chatManager.trigger.bind(null, 'clickScene')}>
 					<label htmlFor="time-range">Time:</label>
 					<input type="range" id="time-range" ref="timeRange" min="0" max="1" step="0.001" />
 				</div>
@@ -402,7 +468,7 @@ class SceneComponent extends React.Component {
 					<small style={hideAdmin}>Log in to chat</small>
 				</div>
 				<SceneControls style={showAdmin} isAdmin={this.state.isAdmin} controls={this.controls} />
-				<ChatComponent auth={this.props.auth} userId={this.state.userId} zone={this.state.zone} />
+				<ChatComponent ref="chatComponent" chatManager={this.chatManager} onChatChange={this.isChatting} auth={this.props.auth} userId={this.state.userId} zone={this.state.zone} />
 			</div>
 		);
 	}
