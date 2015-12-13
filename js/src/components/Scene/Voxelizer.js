@@ -1,4 +1,5 @@
-import THREE from 'three.js';
+// import THREE from 'three.js';
+import THREE from '../../three-74-dev';
 
 let Voxelizer = (Scene) => {
 
@@ -7,7 +8,7 @@ let Voxelizer = (Scene) => {
 
 		let voxel = new THREE.Mesh(
 			new THREE.BoxGeometry(50, 50, 50),
-			new THREE.MeshLambertMaterial({
+			new THREE.MeshStandardMaterial({
 				color
 			})
 		);

@@ -1,4 +1,5 @@
-import THREE from 'three.js';
+// import THREE from 'three.js';
+import THREE from '../../three-74-dev';
 import clamp from '../../utils/clamp';
 
 let Lighting = (Scene) => {
@@ -36,17 +37,17 @@ let Lighting = (Scene) => {
 
     let Light = new THREE.DirectionalLight('#fff');
 	Light.castShadow = true;
-	Light.shadowDarkness = 0.5;
 	Light.shadowMapWidth = Light.shadowMapHeight = 2048;
     Light.shadowCameraLeft = -1000;
     Light.shadowCameraRight = 1000;
     Light.shadowCameraBottom = -1000;
     Light.shadowCameraTop = 1000;
+    Light.shadowCameraFar = 10000;
 	Light.position.set(-500, 2500, 3400);
 	Scene.add(Light);
 
-	let Light2 = new THREE.DirectionalLight('#fff', 1.0);
-	Light2.position.set(2000, 2500, -500);
+	let Light2 = new THREE.AmbientLight('#aaf');
+	Light2.position.set(0, 500, 0);
 	Scene.add(Light2);
 
 	let theTime;

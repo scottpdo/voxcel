@@ -1,4 +1,5 @@
-import THREE from 'three.js';
+// import THREE from 'three.js';
+import THREE from '../../three-74-dev';
 import _Lighting from './Lighting';
 
 let Stage = (Scene) => {
