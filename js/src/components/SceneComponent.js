@@ -1,7 +1,7 @@
 import CONFIG from '../config';
 import Firebase from 'firebase';
 // import THREE from 'three.js';
-import THREE from '../three-74-dev';
+import THREE from '../three-dev';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _Camera from './Scene/Camera';

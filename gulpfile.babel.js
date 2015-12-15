@@ -1,4 +1,5 @@
 var _ = require('lodash'),
+    fs = require('fs'),
     gulp = require('gulp'),
     sass = require('gulp-sass'),
     postcss = require('gulp-postcss'),
@@ -12,7 +13,8 @@ var _ = require('lodash'),
     browserSync = require('browser-sync').create(),
     babelify = require('babelify'),
     watchify = require('watchify'),
-    server = require('./server.js');
+    server = require('./server.js'),
+    request = require('request');
 var reload = browserSync.reload;
 
 // ----- Config
@@ -118,6 +120,11 @@ function build(watch) {
 }
 
 gulp.task('build', function() {
+
+    request('https://raw.githubusercontent.com/mrdoob/three.js/dev/build/three.js', function(err, res, body) {
+
+    });
+
     build();
 });
 

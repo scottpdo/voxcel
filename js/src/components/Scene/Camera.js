@@ -1,5 +1,5 @@
 // import THREE from 'three.js';
-import THREE from '../../three-74-dev';
+import THREE from '../../three-dev';
 import OrbitControls from 'three-orbit-controls';
 
 let Camera = (Scene, Renderer) => {
