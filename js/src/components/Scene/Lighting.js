@@ -38,15 +38,15 @@ let Lighting = (Scene) => {
     let Light = new THREE.DirectionalLight('#fff');
 	Light.castShadow = true;
 	Light.shadowMapWidth = Light.shadowMapHeight = 2048;
-    Light.shadowCameraLeft = -1000;
-    Light.shadowCameraRight = 1000;
-    Light.shadowCameraBottom = -1000;
-    Light.shadowCameraTop = 1000;
-    Light.shadowCameraFar = 10000;
+    Light.shadowCameraLeft = -1500;
+    Light.shadowCameraRight = 1500;
+    Light.shadowCameraBottom = -1500;
+    Light.shadowCameraTop = 1500;
+    Light.shadowCameraFar = 20000;
 	Light.position.set(-500, 2500, 3400);
 	Scene.add(Light);
 
-	let Light2 = new THREE.AmbientLight('#aaf');
+	let Light2 = new THREE.AmbientLight('#a9a9a9');
 	Light2.position.set(0, 500, 0);
 	Scene.add(Light2);
 
@@ -81,11 +81,12 @@ let Lighting = (Scene) => {
         uniforms.topColor.value = new THREE.Color(r, g, b);
 
         // sky bottom color
-        r = range(0.6, 0.95);
-        g = range(0.6, 0.95);
-        b = range(0.6, 0.95);
+        r = range(0.7, 0.95);
+        g = range(0.5, 0.95);
+        b = range(0.5, 0.95);
 
         uniforms.bottomColor.value = new THREE.Color(r, g, b);
+        Scene.fog.color.copy( uniforms.bottomColor.value );
 
         sky.material.uniforms = uniforms;
     };
