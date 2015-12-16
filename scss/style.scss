@@ -28,14 +28,12 @@ p:empty {
     display: none;
 }
 
-$admin_width: 160px;
-
 #main {
     position: absolute;
-    left: $admin-width;
+    left: $toolbar_width;
     top: 0;
     height: 100vh;
-    width: calc(100% - #{$admin_width});
+    width: calc(100% - #{$toolbar_width});
 }
 
 canvas {
@@ -78,13 +76,13 @@ a:active, a:focus, a:hover {
     color: #99d;
 }
 
-#admin {
+#toolbar {
     background: #fff;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
     height: 100vh;
     padding: 10px;
     position: absolute;
-    width: $admin_width;
+    width: $toolbar_width;
 }
     
     .photo {
@@ -202,13 +200,13 @@ img {
     width: 25px;
     position: fixed;
     top: 1em;
-    left: calc(#{$admin_width} + 1em);
+    left: calc(#{$toolbar_width} + 1em);
 }
 
 .viewers {
     position: fixed;
     bottom: 1.5em;
-    left: calc(#{$admin_width} + 1em);
+    left: calc(#{$toolbar_width} + 1em);
 }
 
 #chat {

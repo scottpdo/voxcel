@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import DOMWrapper from './domwrapper';
 import AdminComponent from './components/AdminComponent';
 import MainComponent from './components/MainComponent';
 
@@ -27,12 +27,12 @@ online.on('value', (s) => {
 	}
 });
 
-ReactDOM.render(
+DOMWrapper.render(
     <AdminComponent auth={auth} onChooseZone={SceneManager.chooseZone} onDeleteZone={SceneManager.deleteZone} />,
-    document.getElementById('admin')
+    'toolbar'
 );
 
-ReactDOM.render(
+DOMWrapper.render(
 	<MainComponent auth={auth} sceneManager={SceneManager} viewer={viewerRef} />,
-	document.getElementById('main')
+	'main'
 );
