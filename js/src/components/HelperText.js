@@ -5,7 +5,7 @@ class HelperText extends React.Component {
     
     _showHelperText() {
         
-        let text = '<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scottland</a> using three.js and Firebase.</p><p><b>Right click and drag</b> to rotate the camera.</p><p><b>Left click and drag</b> to pan the camera.</p>';
+        let text = '<p><b>Voxcel</b> is a browser-based 3d <a href="https://en.wikipedia.org/wiki/Voxel">voxel</a> modeling tool.</p>';
         
         if ( !this.props.auth.getUser() ) {
             text += '<p>Once you log in, you can create zones of your own!</p>';
@@ -16,7 +16,7 @@ class HelperText extends React.Component {
         }
 
         swal({
-            title: '3d',
+            title: 'Voxcel',
             allowOutsideClick: true,
             showConfirmButton: false,
             text,

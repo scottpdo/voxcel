@@ -13,7 +13,6 @@ var _ = require('lodash'),
     babelify = require('babelify'),
     watchify = require('watchify'),
     server = require('./server.js');
-var reload = browserSync.reload;
 
 // ----- Config
 
@@ -44,8 +43,7 @@ function css() {
             outputStyle: 'compressed'
         }))
         .pipe(postcss(processors))
-        .pipe(gulp.dest( paths.cssOut ))
-        .pipe(reload({ stream: true }));
+        .pipe(gulp.dest( paths.cssOut ));
 
 }
 
@@ -155,4 +153,4 @@ gulp.task('serve', ['watch'], function() {
     server.start();
 });
 
-gulp.task('default', ['css', 'build']);
+gulp.task('default', ['css', 'build', 'serve']);

@@ -13,8 +13,9 @@ class Main extends React.Component {
 
 		let styles = {
 			width: '100%',
-			height: '100%'
-		}
+			height: '100%',
+			overflowY: 'scroll'
+		};
 		
 		return (
 			<div style={styles}>

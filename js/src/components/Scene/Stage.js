@@ -4,6 +4,7 @@ import _Lighting from './Lighting';
 let Stage = (Scene) => {
 
 	Scene.objects = [];
+	Scene.namedObjects = {};
 
 	let groundPlane = new THREE.Mesh(
 		new THREE.PlaneGeometry(100000, 100000),
@@ -15,6 +16,7 @@ let Stage = (Scene) => {
 	groundPlane.position.y = -2;
 	groundPlane.rotation.x -= Math.PI / 2;
 	Scene.add(groundPlane);
+	Scene.namedObjects.groundPlane = groundPlane;
 
 	let gridPlane = new THREE.Mesh(
 		new THREE.PlaneGeometry(100, 100),
@@ -26,6 +28,7 @@ let Stage = (Scene) => {
 	gridPlane.rotation.x -= Math.PI / 2;
 	Scene.add(gridPlane);
     Scene.objects.push(gridPlane);
+	Scene.namedObjects.gridPlane = gridPlane;
 
 	let Lighting = _Lighting(Scene);
 	Lighting.setTime(0.333);

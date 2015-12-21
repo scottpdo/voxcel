@@ -45,8 +45,6 @@ class ChatComponent extends React.Component {
 				this.refs.message.value = '';
 			}
 		};
-
-		this.props.chatManager.on('clickScene', this.refs.message.blur);
 	}
 
 	componentWillReceiveProps() {

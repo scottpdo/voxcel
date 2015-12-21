@@ -383,7 +383,6 @@ class SceneComponent extends React.Component {
 	}
 
 	isChatting(chatting) {
-		console.log("user is chatting", chatting);
 		this.setState({
 			isChatting: chatting
 		});

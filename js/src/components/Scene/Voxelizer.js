@@ -33,7 +33,7 @@ let Voxelizer = (Scene) => {
 		Scene.objects = before.concat(after);
 		Scene.remove(voxel);
 
-		cb(voxel._id);
+		if (cb) cb(voxel._id);
 	};
 
 	// get a voxel by its ID in O(n) time...

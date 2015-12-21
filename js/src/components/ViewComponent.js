@@ -1,6 +1,6 @@
 import CONFIG from '../config';
 import React from 'react';
-import route from 'http-hash';
+import DefaultViewComponent from './DefaultViewComponent';
 
 class ViewComponent extends React.Component {
 	
@@ -9,32 +9,17 @@ class ViewComponent extends React.Component {
 		super();
 
 		this.state = {
-			visible: this.isVisible(),
-			zones: []
+			visible: this.isVisible()
 		};
 	}
 
+	// should be some router
 	isVisible() {
 		let hash = window.location.hash;
 		return hash.search(/\/user\/(\d*)\/zone\/(.*)\//) === -1;
 	}
 
 	componentDidMount() {
-		
-		let zones = new Firebase(CONFIG.dataRef + '/users');
-		zones.on('child_added', (s) => {
-			let user = s.key();
-			let zones = s.val();
-			for ( let zone in zones ) {
-				this.setState({
-					zones: this.state.zones.concat({
-						user,
-						id: zone,
-						name: zones[zone].name
-					})
-				});
-			}
-		});
 
 		window.addEventListener('hashchange', () => {
 			this.setState({
@@ -45,24 +30,24 @@ class ViewComponent extends React.Component {
 
 	render() {
 
-		let styles = {
-			display: this.state.visible ? 'block' : 'none',
-			padding: '10px 20px'
+		let style = {
+			width: '100%',
+			height: '100%'
 		};
 
-		let zones = this.state.zones.map(v => {
-			return <li key={v.id}><a href={'/#/user/' + v.user + '/zone/' + v.id + '/'}>{v.name}</a></li>;
-		});
+		let titleStyles = {
+			position: 'absolute',
+			top: '0',
+			left: '20px',
+			color: '#fff'
+		};
 
-		return (
-			<div style={styles}>
-				<h1>3d</h1>
-				<img src="http://i.imgur.com/czmQqcy.gif" />
-				<p><b>3d</b> is an in-browser experiment by <a href="https://twitter.com/scottpdonaldson">Scott Donaldson</a> using three.js, React, and Firebase.</p>
-				<p>Check out some zones:</p>
-				<ul>{zones}</ul>
+		return this.state.visible ? (
+			<div style={style}>
+				<DefaultViewComponent />
+				<h1 style={titleStyles}>Voxcel</h1>
 			</div>
-		);
+		) : <div></div>;
 	}
 
 }

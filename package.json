@@ -1,7 +1,7 @@
 {
-  "name": "3d",
+  "name": "Voxcel",
   "version": "0.0.1",
-  "description": "3d modeling in browser",
+  "description": "3d voxel-based modeling in browser.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/scottdonaldson/3d.git"
