@@ -29,7 +29,8 @@ var paths = {
 var site = {
     'index.html': '',
     'css/style.css': 'css',
-    'js/dist/script.min.js': 'js/dist'
+    'js/dist/script.min.js': 'js/dist',
+    'img/**/*': 'img'
 };
 
 function css() {

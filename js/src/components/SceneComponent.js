@@ -34,15 +34,6 @@ class SceneComponent extends React.Component {
 			viewers: []
 		};
 
-		this.controls = {
-			
-			changeColor() {
-				_this.setState({
-					color: this.refs.colorPicker.value
-				});
-			}
-		};
-
 		let chatManager = () => {
 
 			let events = [];
@@ -135,38 +126,10 @@ class SceneComponent extends React.Component {
 			if ( isShiftDown() ) rolloverMesh.visible = false;
 		};
 
-		let takeSnapshot = () => {
-			$(this.refs.canvas).addClass('faded');
-
-			$.ajax({
-				url: CONFIG.imgurEndpoint,
-				type: 'POST',
-				headers: {
-					Authorization: 'Client-ID ' + CONFIG.imgurId,
-					Accept: 'application/json'
-				},
-				data: {
-					image: this.refs.canvas.toDataURL().split(',')[1],
-					type: 'base64'
-				},
-				success(result) {
-					let id = result.data.id;
-					console.log('success', 'https://imgur.com/gallery/' + id);
-				},
-				error(err) {
-					console.log('error uploading', err);
-				}
-			});
-
-			setTimeout(() => {
-				$(this.refs.canvas).removeClass('faded');
-			}, 350);
-		};
-
 		this._onKeyUp = (e) => {
 			
 			if ( isEnterDown() && isShiftDown() ) {
-				takeSnapshot.call(this);
+				this.controls.takeSnapshot.call(this);
 			}
 
 			if ( this.state.keysDown.indexOf(e.keyCode) > -1 ) {
@@ -408,6 +371,17 @@ class SceneComponent extends React.Component {
 		matchHash();
 		window.addEventListener('hashchange', matchHash.bind(this));
 
+		this.controlManager = {
+
+			canvas: this.refs.canvas,
+			
+			changeColor() {
+				this.setState({
+					color: this.refs.colorPicker.value
+				});
+			}
+		};
+
 		let viewersRef = new Firebase(CONFIG.dataRef + '/viewers');
 		let checkAndAddViewer = (viewer) => {
 			if ( this.state.viewers.indexOf(viewer) === -1 && viewer.viewing === this.state.zone && !viewer.isAdmin ) {
@@ -466,7 +440,7 @@ class SceneComponent extends React.Component {
 					<br style={hideAdmin} />
 					<small style={hideAdmin}>Log in to chat</small>
 				</div>
-				<SceneControls style={showAdmin} isAdmin={this.state.isAdmin} controls={this.controls} />
+				<SceneControls style={showAdmin} isAdmin={this.state.isAdmin} controlManager={this.controlManager} />
 				<ChatComponent ref="chatComponent" chatManager={this.chatManager} onChatChange={this.isChatting} auth={this.props.auth} userId={this.state.userId} zone={this.state.zone} />
 			</div>
 		);
