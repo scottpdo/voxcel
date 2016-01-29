@@ -16,7 +16,7 @@ class ViewComponent extends React.Component {
 	// should be some router
 	isVisible() {
 		let hash = window.location.hash;
-		return hash.search(/\/user\/(\d*)\/zone\/(.*)\//) === -1;
+		return hash.search(/\/user\/(\d*)\/zone\/(.*)\//) === -1 && hash.search(/\/sandbox$/) === -1;
 	}
 
 	componentDidMount() {

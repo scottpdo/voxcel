@@ -67,7 +67,7 @@ class DefaultViewComponent extends React.Component {
 		};
 
 		let randHex = () => {
-			return Math.round(Math.random() * 16).toString(16)
+			return random('0123456789abcdef');
 		};
 
 		let _render = () => {
@@ -92,7 +92,6 @@ class DefaultViewComponent extends React.Component {
 				if ( t % 10 === 0 ) {
 					voxels = shuffle(voxels);
 					let vox = voxelizer.get(voxels.pop());
-					console.log(vox);
 					voxelizer.removeVoxel(vox);
 				}
 			}

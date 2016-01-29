@@ -29,7 +29,8 @@ var paths = {
 var site = {
     'index.html': '',
     'css/style.css': 'css',
-    'js/dist/script.min.js': 'js/dist'
+    'js/dist/script.min.js': 'js/dist',
+    'img/**/*': 'img'
 };
 
 function css() {
@@ -85,25 +86,12 @@ function build(watch) {
                 presets: ['es2015', 'react']
             })
             .bundle()
-            .pipe(source('script.js'))
+            .pipe(source('script.min.js'))
             .pipe(buffer())
-            .pipe(sourcemaps.init({
-                loadMaps: true
-            }))
-            .pipe(sourcemaps.write())
+            .pipe(sourcemaps.init({ loadMaps: true }))
+            .pipe(uglify())
+            .pipe(sourcemaps.write('./'))
             .pipe(gulp.dest('js/dist'));
-
-        if ( !watch ) {
-            bundler
-                .transform('babelify', {
-                    presets: ['es2015', 'react']
-                })
-                .bundle()
-                .pipe(source('script.min.js'))
-                .pipe(buffer())
-                .pipe(uglify())
-                .pipe(gulp.dest('js/dist'));
-        }
 
         hrTime = process.hrtime();
         var t2 = hrTime[0] * 1000 + hrTime[1] / 1000000;

@@ -11,6 +11,7 @@ import SceneControls from './Scene/SceneControls';
 import ChatComponent from './Scene/ChatComponent';
 import { $ } from 'zepto-browserify';
 import random from '../utils/random';
+import swal from 'sweetalert';
 
 class SceneComponent extends React.Component {
 
@@ -23,6 +24,7 @@ class SceneComponent extends React.Component {
 		this.state = {
 			active: false,
 			isAdmin: false,
+			isSandbox: false,
 			isChatting: false,
 			scene: new THREE.Scene(),
 			sceneIsStaged: false,
@@ -204,7 +206,7 @@ class SceneComponent extends React.Component {
 	            }
 	        });
 
-	        if ( this.state.isAdmin && closestObj && !isShiftDown() ) {
+	        if ( (this.state.isAdmin || this.state.isSandbox) && closestObj && !isShiftDown() ) {
 	        	rolloverMesh.visible = true;
 	        	rolloverMesh.position.copy( closestObj.point ).add( closestObj.face.normal );
 	            rolloverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
@@ -242,7 +244,7 @@ class SceneComponent extends React.Component {
 		            }
 		        });
 
-		        if ( this.state.isAdmin && closestObj ) {
+		        if ( (this.state.isAdmin || this.state.isSandbox) && closestObj ) {
 
 		        	// if shift is not down, add a voxel
 					if ( !isShiftDown() ) {
@@ -258,13 +260,19 @@ class SceneComponent extends React.Component {
 					    	hexVal = random(hex),
 					    	color = '#' + hexVal + hexVal + hexVal;
 
-						this.state.data.child(id).set(this.state.color || color);
+					    if ( !this.state.isSandbox ) {
+							this.state.data.child(id).set(this.state.color || color);
+						} else {
+							voxelizer.renderVoxel(id, this.state.color || color);
+						}
 
 					// if shift is down, remove a voxel
 					} else {
 
 						voxelizer.removeVoxel(closestObj.object, (id) => {
-				        	this.state.data.child(id).set(null);
+				        	if ( !this.state.isSandbox ) {
+				        		this.state.data.child(id).set(null);
+				        	}
 				        });
 					}
 		        }
@@ -278,6 +286,43 @@ class SceneComponent extends React.Component {
 
 			Renderer.setSize(canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
 		};
+
+		if ( userId === 'sandbox' ) {
+			
+			let hex = '789abcdef';
+			let i = 0;
+			let onGrid = (j) => {
+				return 25 + 50 * j;
+			};
+
+			for ( let y = 0; y <= 2; y++ ) {
+				for ( let x = y; x <= 5 - y; x++ ) {
+					for ( let z = y; z <= 5 - y; z++ ) {
+						setTimeout(() => {
+							let c = random(hex);
+							voxelizer.renderVoxel(
+								onGrid(x - 2) + ',' + onGrid(y) + ',' + onGrid(z - 2),
+								'#' + c + c + c
+							);
+						}, i * 75);
+						i++;
+					}
+				}
+			}
+
+			setTimeout(() => {
+				
+				let html = '<p>Welcome to Voxcel! <b>Click</b> to draw a voxel. <b>Shift + click</b> to remove one. <b>Drag</b> or <b>scroll</b> to move the camera around.</p><p>When you\'re ready, you can log in (with Google) to create and save zones of your own.</p>';
+
+				swal({
+					title: 'Voxcel Sandbox',
+					text: html,
+					animation: 'slide-from-top',
+					html: true,
+					allowOutsideClick: true
+				});
+			}, i * 75 + 500);
+		}
 
 		// Go go go!
 		this.setState({
@@ -341,9 +386,11 @@ class SceneComponent extends React.Component {
 			this.state.data.off('child_removed');
 		}
 
-		this.props.viewer.update({
-			viewing: zone
-		});
+		if ( userId !== 'sandbox' ) {
+			this.props.viewer.update({
+				viewing: zone
+			});
+		}
 
 		this.setState({ 
 			data,
@@ -355,14 +402,16 @@ class SceneComponent extends React.Component {
 
 		let numVoxels = 0;
 
-		data.on('child_added', function(s) {
-			voxelizer.renderVoxel(s.key(), s.val());
-		});
+		if ( userId !== 'sandbox' ) {
+			data.on('child_added', function(s) {
+				voxelizer.renderVoxel(s.key(), s.val());
+			});
 
-		data.on('child_removed', function(s) {
-			let voxel = voxelizer.get(s.key());
-			voxel && voxelizer.removeVoxel(voxel);
-		});
+			data.on('child_removed', function(s) {
+				let voxel = voxelizer.get(s.key());
+				voxel && voxelizer.removeVoxel(voxel);
+			});
+		}
 		
 		return data;
 	}
@@ -391,8 +440,12 @@ class SceneComponent extends React.Component {
 	componentDidMount() {
 
 		let matchHash = () => {
+
 			let hash = window.location.hash;
 			let match = hash.match(/\/user\/(\d*)\/zone\/(.*)\//);
+			let sandbox = hash.match(/\/sandbox$/);
+
+			this.setState({ isSandbox: false });
 			
 			if ( match ) {
 				let userId = match[1];
@@ -401,6 +454,15 @@ class SceneComponent extends React.Component {
 					this.init.call(this, userId, zone);
 				} else {
 					this.update.call(this, userId, zone);
+				}
+			} else if ( sandbox ) {
+
+				this.setState({ isSandbox: true });
+
+				if ( !this.state.sceneIsStaged ) {
+					this.init.call(this, 'sandbox');
+				} else {
+					this.update.call(this, 'sandbox');
 				}
 			}
 		}
