@@ -67,7 +67,7 @@ class DefaultViewComponent extends React.Component {
 		};
 
 		let randHex = () => {
-			return Math.floor(Math.random() * 16).toString(16)
+			return random('0123456789abcdef');
 		};
 
 		let _render = () => {
