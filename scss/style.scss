@@ -198,6 +198,11 @@ img {
     position: fixed;
     top: 1em;
     left: calc(#{$admin_width} + 1em);
+
+    img {
+        // height: 25px;
+        width: 25px;
+    }
 }
 
 #color-picker {

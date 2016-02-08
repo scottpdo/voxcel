@@ -353,6 +353,8 @@ class SceneComponent extends React.Component {
 
 	componentDidMount() {
 
+		let _this = this;
+
 		let matchHash = () => {
 			let hash = window.location.hash;
 			let match = hash.match(/\/user\/(\d*)\/zone\/(.*)\//);
@@ -375,9 +377,9 @@ class SceneComponent extends React.Component {
 
 			canvas: this.refs.canvas,
 			
-			changeColor() {
-				this.setState({
-					color: this.refs.colorPicker.value
+			changeColor(color) {
+				_this.setState({
+					color
 				});
 			}
 		};

@@ -37,10 +37,14 @@ class SceneControls extends React.Component {
 		}, 350);
 	}
 
+	changeColor() {
+		this.props.controlManager.changeColor(this.refs.colorPicker.value);
+	}
+
 	render() {
 		return this.props.isAdmin ? (
 			<div id="scene-controls">
-				<input type="color" id="color-picker" ref="colorPicker" onChange={this.props.controlManager.changeColor.bind(this)} />
+				<input type="color" id="color-picker" ref="colorPicker" onChange={this.changeColor.bind(this)} />
 				<img src="/img/icons/camera.svg" onClick={this.takeSnapshot.bind(this)} />
 			</div>
 		) : null;
