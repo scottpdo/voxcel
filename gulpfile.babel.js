@@ -7,7 +7,6 @@ var _ = require('lodash'),
     uglify = require('gulp-uglify'),
     source = require('vinyl-source-stream'),
     sourcemaps = require('gulp-sourcemaps'),
-    awspublish = require('gulp-awspublish'),
     buffer = require('vinyl-buffer'),
     browserSync = require('browser-sync').create(),
     babelify = require('babelify'),
@@ -15,8 +14,6 @@ var _ = require('lodash'),
     server = require('./server.js');
 
 // ----- Config
-
-var aws = require('./aws.json');
 
 var paths = {
     jsIn: 'js/src/main.js',
@@ -86,7 +83,7 @@ function build(watch) {
                 presets: ['es2015', 'react']
             })
             .bundle()
-            .pipe(source('script.min.js'))
+            .pipe(source('script.js'))
             .pipe(buffer())
             .pipe(sourcemaps.init({ loadMaps: true }))
             .pipe(uglify())
@@ -109,28 +106,6 @@ gulp.task('build', function() {
 
 gulp.task('build-watch', function() {
     build(true);
-});
-
-gulp.task('publish', function() {
-
-    var publisher = awspublish.create({
-        params: {
-            Bucket: aws.bucket
-        },
-        accessKeyId: aws.key,
-        secretAccessKey: aws.secret
-    });
-
-    for ( var key in site ) {
-        gulp.src(key)
-            .pipe(gulp.dest('site/' + site[key]))
-    }
-
-    gulp.src('site/**/*')
-        .pipe(publisher.publish())
-        .pipe(publisher.sync())
-        .pipe(awspublish.reporter());
-
 });
 
 gulp.task('watch', ['css', 'build-watch'], function() {
