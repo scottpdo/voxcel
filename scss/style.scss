@@ -136,8 +136,6 @@ img {
         }
 
         .delete {
-            border: 1px solid;
-            border-radius: 50%;
             display: none;
             height: 1em;
             float: right;
@@ -146,10 +144,10 @@ img {
 
             &:after {
                 content: "✖";
-                font-size: 0.65em;
+                font-size: 0.9em;
                 left: 0;
                 position: absolute;
-                top: 0;
+                top: 1px;
                 width: 100%;
             }
         }
@@ -195,14 +193,23 @@ img {
     }
 }
 
-#color-picker {
-    border: 0;
-    padding: 0;
-    height: 25px;
+#scene-controls {
     width: 25px;
     position: fixed;
     top: 1em;
     left: calc(#{$admin_width} + 1em);
+
+    img {
+        // height: 25px;
+        width: 25px;
+    }
+}
+
+#color-picker {
+    border: 0;
+    padding: 0;
+    height: 25px;
+    width: 100%;
 }
 
 .viewers {

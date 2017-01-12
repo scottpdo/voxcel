@@ -7,6 +7,9 @@ Voxcel is built with:
 - [React](https://facebook.github.io/react/)
 - [Firebase](https://www.firebase.com/)
 
+Credits
+- Camera icon by Edward Boatman from the Noun Project
+
 ## Contributing
 
 To build your dev environment, clone the repo and install dependencies with `npm install`. Then run `gulp` in the console and visit http://localhost:8000.

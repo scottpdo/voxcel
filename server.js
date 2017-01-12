@@ -9,6 +9,7 @@ app.set('view engine', 'ejs');
 
 app.use( '/js', express.static('js') );
 app.use( '/css', express.static('css') );
+app.use( '/img', express.static('img') );
 
 app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, 'index.html'));

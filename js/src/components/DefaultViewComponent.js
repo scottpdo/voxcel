@@ -58,7 +58,7 @@ class DefaultViewComponent extends React.Component {
 		};
 
 		let randId = () => {
-			let id = randStep(-275, 275, 50) + ',' + randStep(25, 375, 50) + ',' + randStep(-275, 275, 50);
+			let id = randStep(-375, 375, 50) + ',' + randStep(25, 375, 50) + ',' + randStep(-375, 375, 50);
 			if ( voxels.indexOf(id) === -1 ) {
 				return id;
 			} else {
@@ -79,9 +79,10 @@ class DefaultViewComponent extends React.Component {
 			// adding
 			if ( t % 400 < 100 ) {
 				
-				if ( t % 10 === 0 ) {
-					let id = randId();
-					let hex = '#' + randHex() + randHex() + randHex();
+				if ( t % 5 === 0 ) {
+					let id = randId(),
+						c = randHex();
+					let hex = '#' + c + c + c;
 					voxelizer.renderVoxel(id, hex);
 					voxels.push(id);
 				}
@@ -89,7 +90,7 @@ class DefaultViewComponent extends React.Component {
 			// removing
 			} else if ( t % 400 >= 200 && t % 400 < 300 ) {
 				
-				if ( t % 10 === 0 ) {
+				if ( t % 5 === 0 ) {
 					voxels = shuffle(voxels);
 					let vox = voxelizer.get(voxels.pop());
 					voxelizer.removeVoxel(vox);
